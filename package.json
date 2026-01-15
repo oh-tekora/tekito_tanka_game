@@ -2,13 +2,13 @@
   "name": "pixijs-game",
   "version": "0.1.0",
   "description": "PixiJS v8 Game Application",
-  "homepage": "https://github.com/UT-AandD-IPD/programming-advance-2025-oh-tekora#readme",
+  "homepage": "https://github.com/UT-AandD-IPD/tekito_tanka_game#readme",
   "bugs": {
-    "url": "https://github.com/UT-AandD-IPD/programming-advance-2025-oh-tekora/issues"
+    "url": "https://github.com/UT-AandD-IPD/tekito_tanka_game/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/UT-AandD-IPD/programming-advance-2025-oh-tekora.git"
+    "url": "git+https://github.com/UT-AandD-IPD/tekito_tanka_game.git"
   },
   "license": "ISC",
   "author": "",
