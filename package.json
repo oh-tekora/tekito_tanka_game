@@ -2,7 +2,18 @@
   "name": "pixijs-game",
   "version": "0.1.0",
   "description": "PixiJS v8 Game Application",
+  "homepage": "https://github.com/UT-AandD-IPD/programming-advance-2025-oh-tekora#readme",
+  "bugs": {
+    "url": "https://github.com/UT-AandD-IPD/programming-advance-2025-oh-tekora/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UT-AandD-IPD/programming-advance-2025-oh-tekora.git"
+  },
+  "license": "ISC",
+  "author": "",
   "type": "module",
+  "main": "._vite.config.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
