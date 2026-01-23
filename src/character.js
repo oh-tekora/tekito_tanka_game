@@ -45,6 +45,20 @@ export class Character extends Container {
          */
         this.graphics = null;
 
+        /**
+         * X方向の速度
+         * @type {number}
+         * @private
+         */
+        this.vx = 0;
+
+        /**
+         * Y方向の速度
+         * @type {number}
+         * @private
+         */
+        this.vy = 0;
+
         this.x = x;
         this.y = y;
 
@@ -58,7 +72,6 @@ export class Character extends Container {
      */
     init() {
         this.createGraphics();
-        this.setupEvents();
     }
 
     /**
@@ -74,48 +87,13 @@ export class Character extends Container {
     }
 
     /**
-     * イベントのセットアップ
-     * @method setupEvents
-     * @private
-     */
-    setupEvents() {
-        this.interactive = true;
-        this.eventMode = 'static';
-        this.cursor = 'pointer';
-
-        // ヒットエリアを設定
-        this.hitArea = new Circle(0, 0, this.size);
-
-        this.on('pointerdown', this.onPointerDown, this);
-        this.on('pointerup', this.onPointerUp, this);
-        this.on('pointerupoutside', this.onPointerUp, this);
-    }
-
-    /**
-     * ポインター押下時のイベントハンドラ
-     * @method onPointerDown
-     * @param {FederatedPointerEvent} event - ポインターイベントオブジェクト
-     */
-    onPointerDown(event) {
-        console.log('PointerDown: キャラクターが押されました');
-        console.log('位置:', this.x, this.y);
-    }
-
-    /**
-     * ポインター離上時のイベントハンドラ
-     * @method onPointerUp
-     * @param {FederatedPointerEvent} event - ポインターイベントオブジェクト
-     */
-    onPointerUp(event) {
-        console.log('PointerUp: キャラクターが離されました');
-    }
-
-    /**
      * フレーム更新処理
      * @method update
      * @param {number} delta - 前フレームからの経過時間
      */
     update(delta) {
-        // 必要に応じてアニメーション等を実装
+        // 速度で位置を更新
+        this.x += this.vx;
+        this.y += this.vy;
     }
 }
