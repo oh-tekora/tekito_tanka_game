@@ -21,7 +21,7 @@ export class Chocolate extends Container {
      * @param {string} texturePath - チョコレート画像のパス
      * @param {number} [scale=1.0] - スケール（大きさ）
      */
-    constructor(x, y, texturePath, scale = 1.0) {
+    constructor(x, y, texturePath, scale = 1.0, points = 1) {
         super();
 
         /**
@@ -30,6 +30,13 @@ export class Chocolate extends Container {
          * @private
          */
         this.texturePath = texturePath;
+
+        /**
+         * 得点
+         * @type {number}
+         * @private
+         */
+        this.points = points;
 
         /**
          * スプライトオブジェクト
@@ -190,5 +197,14 @@ export class Chocolate extends Container {
             width: width,
             height: height
         };
+    }
+
+    /**
+     * チョコレートの得点を取得
+     * @method getPoints
+     * @returns {number} 得点
+     */
+    getPoints() {
+        return this.points;
     }
 }

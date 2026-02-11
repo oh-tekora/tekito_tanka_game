@@ -6,6 +6,8 @@
 
 import { Application } from 'pixi.js';
 import { Game } from './game.js';
+import { Opening } from './Opening.js';
+import { Ending } from './Ending.js';
 
 /**
  * PixiJSアプリケーションの初期化クラス
@@ -80,11 +82,46 @@ class Init {
 (async () => {
     const init = new Init();
     const app = await init.setup();
-    const game = new Game(app);
+    let currentScene = null;
 
-    app.stage.addChild(game);
+    const setScene = (scene) => {
+        if (currentScene) {
+            app.stage.removeChild(currentScene);
+            if (typeof currentScene.destroy === 'function') {
+                currentScene.destroy({ children: true });
+            }
+        }
+        currentScene = scene;
+        app.stage.addChild(currentScene);
+    };
+
+    const showOpening = () => {
+        const opening = new Opening(app, () => {
+            showGame();
+        });
+        setScene(opening);
+    };
+
+    const showGame = () => {
+        const game = new Game(app, (result) => {
+            showEnding(result);
+        });
+        game.start();
+        setScene(game);
+    };
+
+    const showEnding = (result) => {
+        const ending = new Ending(app, result.score, () => {
+            showGame();
+        });
+        setScene(ending);
+    };
+
+    showOpening();
 
     app.ticker.add((ticker) => {
-        game.update(ticker.deltaTime);
+        if (currentScene && typeof currentScene.update === 'function') {
+            currentScene.update(ticker.deltaTime);
+        }
     });
 })();

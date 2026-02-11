@@ -22,7 +22,7 @@ export class Game extends Container {
      * @constructor
      * @param {Application} app - PixiJSアプリケーションインスタンス
      */
-    constructor(app) {
+    constructor(app, onGameEnd = null) {
         super();
 
         /**
@@ -31,6 +31,13 @@ export class Game extends Container {
          * @private
          */
         this.app = app;
+
+        /**
+         * ゲーム終了時のコールバック
+         * @type {Function|null}
+         * @private
+         */
+        this.onGameEnd = onGameEnd;
 
         /**
          * 背景グラフィックスオブジェクト
@@ -126,6 +133,34 @@ export class Game extends Container {
          */
         this.scoreText = null;
 
+        /**
+         * 制限時間（秒）
+         * @type {number}
+         * @private
+         */
+        this.timeLimit = 30;
+
+        /**
+         * 残り時間（秒）
+         * @type {number}
+         * @private
+         */
+        this.timeLeft = this.timeLimit;
+
+        /**
+         * タイム表示テキスト
+         * @type {Text|null}
+         * @private
+         */
+        this.timeText = null;
+
+        /**
+         * ゲーム進行中かどうか
+         * @type {boolean}
+         * @private
+         */
+        this.isRunning = false;
+
         this.init();
     }
 
@@ -144,6 +179,7 @@ export class Game extends Container {
         this.setupGameArea();
         this.setupPlayer();
         this.setupScoreText();
+        this.setupTimeText();
         this.setupCharacter();
         this.setupPointerEvents();
 
@@ -247,6 +283,31 @@ export class Game extends Container {
         this.scoreText.y = this.gameArea.y;
 
         this.addChild(this.scoreText);
+    }
+
+    /**
+     * タイム表示のセットアップ
+     * @method setupTimeText
+     * @private
+     */
+    setupTimeText() {
+        if (!this.gameArea) return;
+
+        this.timeText = new Text({
+            text: `Time: ${this.timeLeft.toFixed(1)}`,
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 24,
+                fontWeight: 'bold',
+                fill: 0xffffff,
+                stroke: { color: 0x000000, width: 4 }
+            }
+        });
+
+        this.timeText.x = this.gameArea.x + this.gameArea.getWidth() + 20;
+        this.timeText.y = this.gameArea.y + 50;
+
+        this.addChild(this.timeText);
     }
 
     /**
@@ -358,6 +419,44 @@ export class Game extends Container {
             this.scoreText.x = this.gameArea.x + this.gameArea.getWidth() + 20;
             this.scoreText.y = this.gameArea.y;
         }
+
+        if (this.timeText && this.gameArea) {
+            this.timeText.x = this.gameArea.x + this.gameArea.getWidth() + 20;
+            this.timeText.y = this.gameArea.y + 50;
+        }
+    }
+
+    /**
+     * ゲーム開始
+     * @method start
+     */
+    start() {
+        this.isRunning = true;
+        this.timeLeft = this.timeLimit;
+        this.score = 0;
+        this.chocolateSpawnTimer = 0;
+        this.chocolates.forEach((chocolate) => this.removeChild(chocolate));
+        this.chocolates = [];
+
+        if (this.scoreText) {
+            this.scoreText.text = `Score: ${this.score}`;
+        }
+        if (this.timeText) {
+            this.timeText.text = `Time: ${this.timeLeft.toFixed(1)}`;
+        }
+    }
+
+    /**
+     * ゲーム終了
+     * @method endGame
+     * @private
+     */
+    endGame() {
+        if (!this.isRunning) return;
+        this.isRunning = false;
+        if (typeof this.onGameEnd === 'function') {
+            this.onGameEnd({ score: this.score });
+        }
     }
 
     /**
@@ -366,6 +465,17 @@ export class Game extends Container {
      * @param {number} delta - 前フレームからの経過時間（60FPS基準で1.0が標準）
      */
     update(delta) {
+        if (!this.isRunning) {
+            return;
+        }
+        this.timeLeft = Math.max(0, this.timeLeft - delta / 60);
+        if (this.timeText) {
+            this.timeText.text = `Time: ${this.timeLeft.toFixed(1)}`;
+        }
+        if (this.timeLeft <= 0) {
+            this.endGame();
+            return;
+        }
         // プレイヤーを更新
         if (this.player) {
             this.player.update(delta);
@@ -439,6 +549,7 @@ export class Game extends Container {
         // ランダムなテクスチャを選択
         const textureIndex = Math.floor(Math.random() * this.chocolateTextures.length);
         const texturePath = this.chocolateTextures[textureIndex];
+        const points = texturePath.includes('チョコ2') ? 3 : 1;
 
         // ゲームエリアの幅内でランダムなX座標を決定
         const areaWidth = this.gameArea.getWidth();
@@ -449,7 +560,7 @@ export class Game extends Container {
         const spawnX = this.gameArea.x + randomX;
 
         // チョコレートを生成（スケールを調整）
-        const chocolate = new Chocolate(spawnX, spawnY, texturePath, 0.08);
+        const chocolate = new Chocolate(spawnX, spawnY, texturePath, 0.08, points);
         this.chocolates.push(chocolate);
         this.addChild(chocolate);
     }
@@ -477,7 +588,7 @@ export class Game extends Container {
                 // チョコをキャッチ
                 chocolate.catch();
                 // スコアを増やす
-                this.addScore(1);
+                this.addScore(chocolate.getPoints());
             }
         }
     }
@@ -507,6 +618,9 @@ export class Game extends Container {
         this.score += points;
         if (this.scoreText) {
             this.scoreText.text = `Score: ${this.score}`;
+        }
+        if (this.player && typeof this.player.setScore === 'function') {
+            this.player.setScore(this.score);
         }
     }
 

@@ -32,11 +32,25 @@ export class Player extends Container {
         this.minX = minX;
 
         /**
+         * 移動可能な最小X座標（画像幅調整前）
+         * @type {number}
+         * @private
+         */
+        this.baseMinX = minX;
+
+        /**
          * 移動可能な最大X座標
          * @type {number}
          * @private
          */
         this.maxX = maxX;
+
+        /**
+         * 移動可能な最大X座標（画像幅調整前）
+         * @type {number}
+         * @private
+         */
+        this.baseMaxX = maxX;
 
         /**
          * 移動中のスプライト
@@ -58,6 +72,13 @@ export class Player extends Container {
          * @private
          */
         this.currentSprite = null;
+
+        /**
+         * 現在の見た目レベル
+         * @type {number}
+         * @private
+         */
+        this.currentTier = 0;
 
         /**
          * 移動速度
@@ -109,31 +130,8 @@ export class Player extends Container {
      */
     async init() {
         try {
-            // 画像を読み込み
-            const moveTexture = await Assets.load('/assets/大吾郎_からっぽ.png');
-            const stopTexture = await Assets.load('/assets/大吾郎_停止_からっぽ.png');
-
-            // スプライトを作成
-            this.moveSprite = new Sprite(moveTexture);
-            this.stopSprite = new Sprite(stopTexture);
-
-            // アンカーを下中央に設定
-            this.moveSprite.anchor.set(0.5, 1);
-            this.stopSprite.anchor.set(0.5, 1);
-
-            // スケールを調整（必要に応じて）
-            const scale = 0.15;
-            this.moveSprite.scale.set(scale);
-            this.stopSprite.scale.set(scale);
-
-            // 初期は停止スプライトを表示
-            this.currentSprite = this.stopSprite;
-            this.addChild(this.stopSprite);
-
-            // 画像の幅を考慮して移動範囲を調整
-            const halfWidth = this.getWidth() / 2;
-            this.minX += halfWidth;
-            this.maxX -= halfWidth;
+            await this.loadSpriteSet(0);
+            this.applyBounds();
 
             // キーボードイベントをセットアップ
             this.setupKeyboardEvents();
@@ -172,6 +170,9 @@ export class Player extends Container {
      * @param {number} delta - 前フレームからの経過時間（60FPS基準で1.0が標準）
      */
     update(delta) {
+        if (!this.currentSprite) {
+            return;
+        }
         this.isMoving = false;
 
         // 左右の移動処理
@@ -199,6 +200,9 @@ export class Player extends Container {
      * @private
      */
     updateSprite() {
+        if (!this.moveSprite || !this.stopSprite || !this.currentSprite) {
+            return;
+        }
         let newSprite = null;
         let flipX = false;
 
@@ -232,9 +236,109 @@ export class Player extends Container {
      * @param {number} maxX - 新しい最大X座標
      */
     updateBounds(minX, maxX) {
+        this.baseMinX = minX;
+        this.baseMaxX = maxX;
+        this.applyBounds();
+    }
+
+    /**
+     * スコアに応じて見た目を更新
+     * @method setScore
+     * @param {number} score - 現在のスコア
+     */
+    setScore(score) {
+        const nextTier = this.resolveTier(score);
+        if (nextTier === this.currentTier) {
+            return;
+        }
+        this.currentTier = nextTier;
+        this.loadSpriteSet(nextTier).catch((error) => {
+            console.error('プレイヤー画像の読み込みに失敗しました:', error);
+        });
+    }
+
+    /**
+     * スコアから見た目レベルを決定
+     * @method resolveTier
+     * @param {number} score - 現在のスコア
+     * @returns {number} レベル
+     * @private
+     */
+    resolveTier(score) {
+        if (score >= 80) return 2;
+        if (score >= 40) return 1;
+        return 0;
+    }
+
+    /**
+     * スプライトセットを読み込む
+     * @method loadSpriteSet
+     * @param {number} tier - 見た目レベル
+     * @private
+     */
+    async loadSpriteSet(tier) {
+        const paths = this.getSpritePaths(tier);
+        const moveTexture = await Assets.load(paths.move);
+        const stopTexture = await Assets.load(paths.stop);
+
+        const moveSprite = new Sprite(moveTexture);
+        const stopSprite = new Sprite(stopTexture);
+
+        moveSprite.anchor.set(0.5, 1);
+        stopSprite.anchor.set(0.5, 1);
+
+        const scale = 0.15;
+        moveSprite.scale.set(scale);
+        stopSprite.scale.set(scale);
+
+        if (this.moveSprite) this.removeChild(this.moveSprite);
+        if (this.stopSprite) this.removeChild(this.stopSprite);
+
+        this.moveSprite = moveSprite;
+        this.stopSprite = stopSprite;
+
+        this.currentSprite = this.isMoving ? this.moveSprite : this.stopSprite;
+        this.addChild(this.currentSprite);
+
+        this.applyBounds();
+        this.updateSprite();
+    }
+
+    /**
+     * レベルに応じた画像パスを取得
+     * @method getSpritePaths
+     * @param {number} tier - 見た目レベル
+     * @returns {{move: string, stop: string}} 画像パス
+     * @private
+     */
+    getSpritePaths(tier) {
+        if (tier === 2) {
+            return {
+                move: '/assets/大吾郎_やまもり.png',
+                stop: '/assets/大吾郎_停止_やまもり.png'
+            };
+        }
+        if (tier === 1) {
+            return {
+                move: '/assets/大吾郎_ふつうもり.png',
+                stop: '/assets/大吾郎_停止_ふつうもり.png'
+            };
+        }
+        return {
+            move: '/assets/大吾郎_からっぽ.png',
+            stop: '/assets/大吾郎_停止_からっぽ.png'
+        };
+    }
+
+    /**
+     * 画像幅を考慮した移動範囲を適用
+     * @method applyBounds
+     * @private
+     */
+    applyBounds() {
         const halfWidth = this.getWidth() / 2;
-        this.minX = minX + halfWidth;
-        this.maxX = maxX - halfWidth;
+        this.minX = this.baseMinX + halfWidth;
+        this.maxX = this.baseMaxX - halfWidth;
     }
 
     /**

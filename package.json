@@ -1,14 +1,14 @@
 {
-  "name": "pixijs-game",
+  "name": "valentine_catch_game",
   "version": "0.1.0",
   "description": "PixiJS v8 Game Application",
-  "homepage": "https://github.com/oh-tekora/tekito_tanka_game#readme",
+  "homepage": "https://github.com/oh-tekora/valentine_catch_game#readme",
   "bugs": {
-    "url": "https://github.com/oh-tekora/tekito_tanka_game/issues"
+    "url": "https://github.com/oh-tekora/valentine_catch_game/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oh-tekora/tekito_tanka_game.git"
+    "url": "git+https://github.com/oh-tekora/valentine_catch_game.git"
   },
   "license": "ISC",
   "author": "",
