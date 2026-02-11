@@ -4,6 +4,8 @@
 
 import { Container, Graphics, Text } from 'pixi.js';
 
+const UI_FONT = 'DotGothic16Std-M, Arial, sans-serif';
+
 export class Ending extends Container {
     constructor(app, score = 0, onRetry = null) {
         super();
@@ -29,7 +31,7 @@ export class Ending extends Container {
         this.titleText = new Text({
             text: 'Result',
             style: {
-                fontFamily: 'Arial',
+                fontFamily: UI_FONT,
                 fontSize: 48,
                 fontWeight: 'bold',
                 fill: 0xffffff,
@@ -41,7 +43,7 @@ export class Ending extends Container {
         this.scoreText = new Text({
             text: `Score: ${score}`,
             style: {
-                fontFamily: 'Arial',
+                fontFamily: UI_FONT,
                 fontSize: 36,
                 fontWeight: 'bold',
                 fill: 0xffffff,
@@ -63,7 +65,7 @@ export class Ending extends Container {
         this.buttonText = new Text({
             text: 'RETRY',
             style: {
-                fontFamily: 'Arial',
+                fontFamily: UI_FONT,
                 fontSize: 28,
                 fontWeight: 'bold',
                 fill: 0xffffff

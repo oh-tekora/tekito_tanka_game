@@ -84,6 +84,18 @@ class Init {
     const app = await init.setup();
     let currentScene = null;
 
+    const loadFonts = async () => {
+        if (!document.fonts || !document.fonts.load) {
+            return;
+        }
+        try {
+            await document.fonts.load('16px "DotGothic16Std-M"');
+            await document.fonts.ready;
+        } catch (error) {
+            console.warn('Font loading failed:', error);
+        }
+    };
+
     const setScene = (scene) => {
         if (currentScene) {
             app.stage.removeChild(currentScene);
@@ -117,6 +129,7 @@ class Init {
         setScene(ending);
     };
 
+    await loadFonts();
     showOpening();
 
     app.ticker.add((ticker) => {

@@ -10,6 +10,8 @@ import { GameArea } from './GameArea.js';
 import { Chocolate } from './Chocolate.js';
 import { Player } from './Player.js';
 
+const UI_FONT = 'DotGothic16Std-M, Arial, sans-serif';
+
 /**
  * ゲームのメイン画面クラス
  * @class Game
@@ -270,7 +272,7 @@ export class Game extends Container {
         this.scoreText = new Text({
             text: `Score: ${this.score}`,
             style: {
-                fontFamily: 'Arial',
+                fontFamily: UI_FONT,
                 fontSize: 32,
                 fontWeight: 'bold',
                 fill: 0xffffff,
@@ -296,7 +298,7 @@ export class Game extends Container {
         this.timeText = new Text({
             text: `Time: ${this.timeLeft.toFixed(1)}`,
             style: {
-                fontFamily: 'Arial',
+                fontFamily: UI_FONT,
                 fontSize: 24,
                 fontWeight: 'bold',
                 fill: 0xffffff,

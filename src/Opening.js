@@ -4,6 +4,8 @@
 
 import { Container, Graphics, Text } from 'pixi.js';
 
+const UI_FONT = 'DotGothic16Std-M, Arial, sans-serif';
+
 export class Opening extends Container {
     constructor(app, onStart = null) {
         super();
@@ -28,7 +30,7 @@ export class Opening extends Container {
         this.titleText = new Text({
             text: 'Valentine Catch',
             style: {
-                fontFamily: 'Arial',
+                fontFamily: UI_FONT,
                 fontSize: 48,
                 fontWeight: 'bold',
                 fill: 0xffffff,
@@ -50,7 +52,7 @@ export class Opening extends Container {
         this.buttonText = new Text({
             text: 'START',
             style: {
-                fontFamily: 'Arial',
+                fontFamily: UI_FONT,
                 fontSize: 28,
                 fontWeight: 'bold',
                 fill: 0xffffff
