@@ -4,8 +4,11 @@
  * @version 2.0.0
  */
 
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Text } from 'pixi.js';
 import { Character } from './character.js';
+import { GameArea } from './GameArea.js';
+import { Chocolate } from './Chocolate.js';
+import { Player } from './Player.js';
 
 /**
  * ゲームのメイン画面クラス
@@ -37,6 +40,13 @@ export class Game extends Container {
         this.background = null;
 
         /**
+         * ゲームエリア
+         * @type {GameArea}
+         * @private
+         */
+        this.gameArea = null;
+
+        /**
          * キャラクターインスタンス
          * @type {Character}
          * @private
@@ -64,6 +74,58 @@ export class Game extends Container {
          */
         this.currentPointerPos = { x: 0, y: 0 };
 
+        /**
+         * チョコレートの配列
+         * @type {Chocolate[]}
+         * @private
+         */
+        this.chocolates = [];
+
+        /**
+         * チョコレート生成タイマー
+         * @type {number}
+         * @private
+         */
+        this.chocolateSpawnTimer = 0;
+
+        /**
+         * チョコレート生成間隔（秒）
+         * @type {number}
+         * @private
+         */
+        this.chocolateSpawnInterval = 0.5;
+
+        /**
+         * チョコレート画像のパス配列
+         * @type {string[]}
+         * @private
+         */
+        this.chocolateTextures = [
+            '/assets/チョコ.png',
+            '/assets/チョコ2.png'
+        ];
+
+        /**
+         * プレイヤー
+         * @type {Player|null}
+         * @private
+         */
+        this.player = null;
+
+        /**
+         * スコア
+         * @type {number}
+         * @private
+         */
+        this.score = 0;
+
+        /**
+         * スコア表示テキスト
+         * @type {Text|null}
+         * @private
+         */
+        this.scoreText = null;
+
         this.init();
     }
 
@@ -79,6 +141,9 @@ export class Game extends Container {
         this.eventMode = 'static';
 
         this.setupBackground();
+        this.setupGameArea();
+        this.setupPlayer();
+        this.setupScoreText();
         this.setupCharacter();
         this.setupPointerEvents();
 
@@ -117,34 +182,85 @@ export class Game extends Container {
     }
 
     /**
+     * ゲームエリアのセットアップ
+     * @method setupGameArea
+     * @private
+     */
+    setupGameArea() {
+        // 画面サイズの80%のゲームエリアを作成（最大サイズに制限）
+        const maxWidth = 600;
+        const maxHeight = 800;
+        const areaWidth = Math.min(this.app.screen.width * 0.8, maxWidth);
+        const areaHeight = Math.min(this.app.screen.height * 0.8, maxHeight);
+
+        this.gameArea = new GameArea(areaWidth, areaHeight, 0xffffff, 5, 0x000000, 0.2);
+        
+        // ゲームエリアを画面中央に配置
+        this.gameArea.x = (this.app.screen.width - areaWidth) / 2;
+        this.gameArea.y = (this.app.screen.height - areaHeight) / 2;
+        
+        this.addChild(this.gameArea);
+    }
+
+    /**
+     * プレイヤーのセットアップ
+     * @method setupPlayer
+     * @private
+     */
+    setupPlayer() {
+        if (!this.gameArea) return;
+
+        // プレイヤーの初期位置（ゲームエリアの底面から5px上）
+        const playerX = this.gameArea.x + this.gameArea.getWidth() / 2;
+        const playerY = this.gameArea.y + this.gameArea.getHeight() - 5;
+
+        // 移動範囲（後でプレイヤーの幅が分かったら調整）
+        const minX = this.gameArea.x;
+        const maxX = this.gameArea.x + this.gameArea.getWidth();
+
+        this.player = new Player(playerX, playerY, minX, maxX);
+        this.addChild(this.player);
+    }
+
+    /**
+     * スコア表示のセットアップ
+     * @method setupScoreText
+     * @private
+     */
+    setupScoreText() {
+        if (!this.gameArea) return;
+
+        // スコアテキストを作成
+        this.scoreText = new Text({
+            text: `Score: ${this.score}`,
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 32,
+                fontWeight: 'bold',
+                fill: 0xffffff,
+                stroke: { color: 0x000000, width: 4 }
+            }
+        });
+
+        // ゲームエリアの右上外側に配置
+        this.scoreText.x = this.gameArea.x + this.gameArea.getWidth() + 20;
+        this.scoreText.y = this.gameArea.y;
+
+        this.addChild(this.scoreText);
+    }
+
+    /**
+     * キャラクターのセットアップ
+     * @method setupCharacter
+     * @private
+     */
+    /**
      * キャラクターのセットアップ
      * @method setupCharacter
      * @private
      */
     setupCharacter() {
-        const centerX = this.app.screen.width / 2;
-        const centerY = this.app.screen.height / 2;
-
-        // 赤い円
-        const redCircle = new Character(centerX - 150, centerY, 100, 0xff0000);
-        redCircle.vx = 2;
-        redCircle.vy = 1;
-        this.addChild(redCircle);
-        this.characters.push(redCircle);
-
-        // 緑の円
-        const greenCircle = new Character(centerX + 150, centerY, 100, 0x00ff00);
-        greenCircle.vx = -2;
-        greenCircle.vy = -1;
-        this.addChild(greenCircle);
-        this.characters.push(greenCircle);
-
-        // 青い円（既存）
-        this.character = new Character(centerX, centerY, 100, 0x0000ff);
-        this.character.vx = 0;
-        this.character.vy = 2;
-        this.addChild(this.character);
-        this.characters.push(this.character);
+        // キャラクターは後で追加
     }
 
     /**
@@ -213,6 +329,35 @@ export class Game extends Container {
      */
     onResize() {
         this.drawBackground();
+        
+        // ゲームエリアのサイズと位置を更新
+        if (this.gameArea) {
+            const maxWidth = 600;
+            const maxHeight = 800;
+            const areaWidth = Math.min(this.app.screen.width * 0.8, maxWidth);
+            const areaHeight = Math.min(this.app.screen.height * 0.8, maxHeight);
+            
+            this.gameArea.resize(areaWidth, areaHeight);
+            this.gameArea.x = (this.app.screen.width - areaWidth) / 2;
+            this.gameArea.y = (this.app.screen.height - areaHeight) / 2;
+        }
+
+        // プレイヤーの位置を更新
+        if (this.player && this.gameArea) {
+            const playerY = this.gameArea.y + this.gameArea.getHeight() - 5;
+            this.player.y = playerY;
+
+            // プレイヤーの移動範囲を更新
+            const minX = this.gameArea.x;
+            const maxX = this.gameArea.x + this.gameArea.getWidth();
+            this.player.updateBounds(minX, maxX);
+        }
+
+        // スコアテキストの位置を更新
+        if (this.scoreText && this.gameArea) {
+            this.scoreText.x = this.gameArea.x + this.gameArea.getWidth() + 20;
+            this.scoreText.y = this.gameArea.y;
+        }
     }
 
     /**
@@ -221,6 +366,20 @@ export class Game extends Container {
      * @param {number} delta - 前フレームからの経過時間（60FPS基準で1.0が標準）
      */
     update(delta) {
+        // プレイヤーを更新
+        if (this.player) {
+            this.player.update(delta);
+        }
+
+        // チョコレート生成タイマーを更新
+        this.updateChocolateSpawner(delta);
+
+        // チョコレートを更新
+        this.updateChocolates(delta);
+
+        // チョコとプレイヤーの衝突判定
+        this.checkChocolateCollisions();
+
         // 各キャラクターを更新
         for (const character of this.characters) {
             // ドラッグ中でないキャラクターのみ更新
@@ -255,36 +414,198 @@ export class Game extends Container {
     }
 
     /**
+     * チョコレート生成タイマーを更新
+     * @method updateChocolateSpawner
+     * @param {number} delta - 前フレームからの経過時間
+     * @private
+     */
+    updateChocolateSpawner(delta) {
+        this.chocolateSpawnTimer += delta / 60; // deltaを秒に変換
+
+        if (this.chocolateSpawnTimer >= this.chocolateSpawnInterval) {
+            this.spawnChocolate();
+            this.chocolateSpawnTimer = 0;
+        }
+    }
+
+    /**
+     * チョコレートを生成
+     * @method spawnChocolate
+     * @private
+     */
+    spawnChocolate() {
+        if (!this.gameArea) return;
+
+        // ランダムなテクスチャを選択
+        const textureIndex = Math.floor(Math.random() * this.chocolateTextures.length);
+        const texturePath = this.chocolateTextures[textureIndex];
+
+        // ゲームエリアの幅内でランダムなX座標を決定
+        const areaWidth = this.gameArea.getWidth();
+        const randomX = Math.random() * (areaWidth - 40) + 20; // 端から20pxマージン
+
+        // ゲームエリアの上端のY座標（エリア内から出現）
+        const spawnY = this.gameArea.y + 10;
+        const spawnX = this.gameArea.x + randomX;
+
+        // チョコレートを生成（スケールを調整）
+        const chocolate = new Chocolate(spawnX, spawnY, texturePath, 0.08);
+        this.chocolates.push(chocolate);
+        this.addChild(chocolate);
+    }
+
+    /**
+     * チョコレートとプレイヤーの衝突判定
+     * @method checkChocolateCollisions
+     * @private
+     */
+    checkChocolateCollisions() {
+        if (!this.player) return;
+
+        const playerBounds = this.player.getBounds();
+
+        for (const chocolate of this.chocolates) {
+            if (chocolate.isCaught() || chocolate.isOutOfBounds()) {
+                continue;
+            }
+
+            // チョコレートの境界を取得
+            const chocoBounds = chocolate.getBounds();
+
+            // 矩形の衝突判定
+            if (this.checkRectCollision(playerBounds, chocoBounds)) {
+                // チョコをキャッチ
+                chocolate.catch();
+                // スコアを増やす
+                this.addScore(1);
+            }
+        }
+    }
+
+    /**
+     * 矩形同士の衝突判定
+     * @method checkRectCollision
+     * @param {Object} rect1 - 矩形1 {x, y, width, height}
+     * @param {Object} rect2 - 矩形2 {x, y, width, height}
+     * @returns {boolean} 衝突していればtrue
+     * @private
+     */
+    checkRectCollision(rect1, rect2) {
+        return rect1.x < rect2.x + rect2.width &&
+               rect1.x + rect1.width > rect2.x &&
+               rect1.y < rect2.y + rect2.height &&
+               rect1.y + rect1.height > rect2.y;
+    }
+
+    /**
+     * スコアを加算
+     * @method addScore
+     * @param {number} points - 加算するポイント
+     * @private
+     */
+    addScore(points) {
+        this.score += points;
+        if (this.scoreText) {
+            this.scoreText.text = `Score: ${this.score}`;
+        }
+    }
+
+    /**
+     * チョコレートを更新
+     * @method updateChocolates
+     * @param {number} delta - 前フレームからの経過時間
+     * @private
+     */
+    updateChocolates(delta) {
+        // ゲームエリアの下端Y座標を取得（底面に到達したら消失）
+        const bottomY = this.gameArea ? this.gameArea.y + this.gameArea.getHeight() : this.app.screen.height;
+
+        // チョコレートを更新し、画面外チェック
+        for (const chocolate of this.chocolates) {
+            chocolate.update(delta);
+            chocolate.checkOutOfBounds(bottomY);
+        }
+
+        // 画面外またはキャッチされたチョコレートを削除
+        this.chocolates = this.chocolates.filter(chocolate => {
+            if (chocolate.isOutOfBounds() || chocolate.isCaught()) {
+                this.removeChild(chocolate);
+                return false;
+            }
+            return true;
+        });
+    }
+
+    /**
      * 画面端との衝突判定と反発処理
      * @method checkScreenCollision
      * @param {Character} character - キャラクター
      * @private
      */
     checkScreenCollision(character) {
-        const screenWidth = this.app.screen.width;
-        const screenHeight = this.app.screen.height;
+        // ゲームエリアがない場合は画面全体を使用
+        if (!this.gameArea) {
+            const screenWidth = this.app.screen.width;
+            const screenHeight = this.app.screen.height;
+            
+            // 左端の壁
+            if (character.x - character.size <= 0) {
+                character.x = character.size;
+                character.vx = Math.abs(character.vx);
+            }
+            
+            // 右端の壁
+            if (character.x + character.size >= screenWidth) {
+                character.x = screenWidth - character.size;
+                character.vx = -Math.abs(character.vx);
+            }
+            
+            // 上端の壁
+            if (character.y - character.size <= 0) {
+                character.y = character.size;
+                character.vy = Math.abs(character.vy);
+            }
+            
+            // 下端の壁
+            if (character.y + character.size >= screenHeight) {
+                character.y = screenHeight - character.size;
+                character.vy = -Math.abs(character.vy);
+            }
+            return;
+        }
+
+        // ゲームエリアの境界での衝突判定
+        const areaWidth = this.gameArea.getWidth();
+        const areaHeight = this.gameArea.getHeight();
+        
+        // キャラクターのゲームエリア内での座標を取得
+        const localPos = this.gameArea.toLocal({ x: character.x, y: character.y }, this);
         
         // 左端の壁
-        if (character.x - character.size <= 0) {
-            character.x = character.size;
+        if (localPos.x - character.size <= 0) {
+            const globalPos = this.toLocal({ x: this.gameArea.x + character.size, y: character.y }, this.parent);
+            character.x = globalPos.x;
             character.vx = Math.abs(character.vx);
         }
         
         // 右端の壁
-        if (character.x + character.size >= screenWidth) {
-            character.x = screenWidth - character.size;
+        if (localPos.x + character.size >= areaWidth) {
+            const globalPos = this.toLocal({ x: this.gameArea.x + areaWidth - character.size, y: character.y }, this.parent);
+            character.x = globalPos.x;
             character.vx = -Math.abs(character.vx);
         }
         
         // 上端の壁
-        if (character.y - character.size <= 0) {
-            character.y = character.size;
+        if (localPos.y - character.size <= 0) {
+            const globalPos = this.toLocal({ x: character.x, y: this.gameArea.y + character.size }, this.parent);
+            character.y = globalPos.y;
             character.vy = Math.abs(character.vy);
         }
         
         // 下端の壁
-        if (character.y + character.size >= screenHeight) {
-            character.y = screenHeight - character.size;
+        if (localPos.y + character.size >= areaHeight) {
+            const globalPos = this.toLocal({ x: character.x, y: this.gameArea.y + areaHeight - character.size }, this.parent);
+            character.y = globalPos.y;
             character.vy = -Math.abs(character.vy);
         }
     }
