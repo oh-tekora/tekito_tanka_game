@@ -7,18 +7,21 @@ import { Container, Graphics, Text } from 'pixi.js';
 const UI_FONT = 'DotGothic16Std-M, Arial, sans-serif';
 
 export class Ending extends Container {
-    constructor(app, score = 0, onRetry = null) {
+    constructor(app, score = 0, onRetry = null, onTop = null) {
         super();
 
         this.app = app;
         this.onRetry = onRetry;
+        this.onTop = onTop;
 
         this.eventMode = 'static';
 
         this.titleText = null;
         this.scoreText = null;
-        this.button = null;
-        this.buttonText = null;
+        this.retryButton = null;
+        this.retryButtonText = null;
+        this.topButton = null;
+        this.topButtonText = null;
 
         this.init(score);
 
@@ -52,17 +55,18 @@ export class Ending extends Container {
         });
         this.addChild(this.scoreText);
 
-        this.button = new Graphics();
-        this.button.eventMode = 'static';
-        this.button.cursor = 'pointer';
-        this.button.on('pointerdown', () => {
+        // RETRYボタン
+        this.retryButton = new Graphics();
+        this.retryButton.eventMode = 'static';
+        this.retryButton.cursor = 'pointer';
+        this.retryButton.on('pointerdown', () => {
             if (typeof this.onRetry === 'function') {
                 this.onRetry();
             }
         });
-        this.addChild(this.button);
+        this.addChild(this.retryButton);
 
-        this.buttonText = new Text({
+        this.retryButtonText = new Text({
             text: 'RETRY',
             style: {
                 fontFamily: UI_FONT,
@@ -71,7 +75,29 @@ export class Ending extends Container {
                 fill: 0xffffff
             }
         });
-        this.addChild(this.buttonText);
+        this.addChild(this.retryButtonText);
+
+        // TOPボタン
+        this.topButton = new Graphics();
+        this.topButton.eventMode = 'static';
+        this.topButton.cursor = 'pointer';
+        this.topButton.on('pointerdown', () => {
+            if (typeof this.onTop === 'function') {
+                this.onTop();
+            }
+        });
+        this.addChild(this.topButton);
+
+        this.topButtonText = new Text({
+            text: 'TOP',
+            style: {
+                fontFamily: UI_FONT,
+                fontSize: 28,
+                fontWeight: 'bold',
+                fill: 0xffffff
+            }
+        });
+        this.addChild(this.topButtonText);
 
         this.layout();
     }
@@ -101,22 +127,46 @@ export class Ending extends Container {
 
             const buttonWidth = 200;
             const buttonHeight = 64;
-            const buttonX = centerX - buttonWidth / 2;
+            const buttonSpacing = 20;
+            const totalWidth = buttonWidth * 2 + buttonSpacing;
+            const startX = centerX - totalWidth / 2;
             const buttonY = centerY + 10;
 
-            if (this.button) {
-                this.button.clear();
-                this.button.roundRect(buttonX, buttonY, buttonWidth, buttonHeight, 12);
-                this.button.fill(0x66ccff);
-                this.button.stroke({ color: 0xffffff, width: 4 });
+            // TOPボタン（左側）
+            const topButtonX = startX;
+
+            if (this.topButton) {
+                this.topButton.clear();
+                this.topButton.roundRect(topButtonX, buttonY, buttonWidth, buttonHeight, 12);
+                this.topButton.fill(0x666666);
+                this.topButton.stroke({ color: 0xffffff, width: 4 });
             }
 
-            if (this.buttonText) {
+            if (this.topButtonText) {
                 try {
-                    this.buttonText.x = centerX - this.buttonText.width / 2;
-                    this.buttonText.y = buttonY + (buttonHeight - this.buttonText.height) / 2;
+                    this.topButtonText.x = topButtonX + buttonWidth / 2 - this.topButtonText.width / 2;
+                    this.topButtonText.y = buttonY + (buttonHeight - this.topButtonText.height) / 2;
                 } catch (e) {
-                    console.warn('Button text layout error:', e);
+                    console.warn('Top button text layout error:', e);
+                }
+            }
+
+            // RETRYボタン（右側）
+            const retryButtonX = startX + buttonWidth + buttonSpacing;
+
+            if (this.retryButton) {
+                this.retryButton.clear();
+                this.retryButton.roundRect(retryButtonX, buttonY, buttonWidth, buttonHeight, 12);
+                this.retryButton.fill(0x66ccff);
+                this.retryButton.stroke({ color: 0xffffff, width: 4 });
+            }
+
+            if (this.retryButtonText) {
+                try {
+                    this.retryButtonText.x = retryButtonX + buttonWidth / 2 - this.retryButtonText.width / 2;
+                    this.retryButtonText.y = buttonY + (buttonHeight - this.retryButtonText.height) / 2;
+                } catch (e) {
+                    console.warn('Retry button text layout error:', e);
                 }
             }
         } catch (e) {
