@@ -11,6 +11,7 @@ import { Chocolate } from './Chocolate.js';
 import { Player } from './Player.js';
 import { FloatingText } from './FloatingText.js';
 import { StaminaGauge } from './StaminaGauge.js';
+import { Sprite, Assets } from 'pixi.js';
 
 const UI_FONT = 'DotGothic16Std-M, Arial, sans-serif';
 
@@ -248,6 +249,7 @@ export class Game extends Container {
         this.setupStaminaGauge();
         this.setupScoreText();
         this.setupTimeText();
+        this.setupPointGuide();
         this.setupStaminaGauge();
         this.setupCountdownText();
         this.setupFinishText();
@@ -400,6 +402,65 @@ export class Game extends Container {
         this.timeText.y = this.gameArea.y + 50;
 
         this.addChild(this.timeText);
+    }
+
+    /**
+     * ポイントガイドのセットアップ
+     * @method setupPointGuide
+     * @private
+     */
+    async setupPointGuide() {
+        if (!this.gameArea) return;
+
+        try {
+            // チョコレート1の表示
+            const choco1Texture = await Assets.load('/assets/chocolate1.png');
+            const choco1Icon = new Sprite(choco1Texture);
+            choco1Icon.width = 30;
+            choco1Icon.height = 30;
+            choco1Icon.x = this.gameArea.x + this.gameArea.getWidth() + 20;
+            choco1Icon.y = this.gameArea.y + 100;
+            this.addChild(choco1Icon);
+
+            const choco1Text = new Text({
+                text: '1pt',
+                style: {
+                    fontFamily: UI_FONT,
+                    fontSize: 20,
+                    fontWeight: 'bold',
+                    fill: 0xffffff,
+                    stroke: { color: 0x000000, width: 3 }
+                }
+            });
+            choco1Text.x = choco1Icon.x + 40;
+            choco1Text.y = choco1Icon.y + 5;
+            this.addChild(choco1Text);
+
+            // チョコレート2の表示
+            const choco2Texture = await Assets.load('/assets/chocolate2.png');
+            const choco2Icon = new Sprite(choco2Texture);
+            choco2Icon.width = 30;
+            choco2Icon.height = 30;
+            choco2Icon.x = this.gameArea.x + this.gameArea.getWidth() + 20;
+            choco2Icon.y = this.gameArea.y + 140;
+            this.addChild(choco2Icon);
+
+            const choco2Text = new Text({
+                text: '3pt',
+                style: {
+                    fontFamily: UI_FONT,
+                    fontSize: 20,
+                    fontWeight: 'bold',
+                    fill: 0xffffff,
+                    stroke: { color: 0x000000, width: 3 }
+                }
+            });
+            choco2Text.x = choco2Icon.x + 40;
+            choco2Text.y = choco2Icon.y + 5;
+            this.addChild(choco2Text);
+        } catch (e) {
+            console.error('Point guide setup failed:', e);
+        }
     }
 
     /**
