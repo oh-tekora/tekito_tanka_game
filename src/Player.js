@@ -163,42 +163,14 @@ export class Player extends Container {
          * @type {number}
          * @private
          */
-        this.stamina = 7.0;
+        this.stamina = 3.0;
 
         /**
-         * 利用可能なスタミナの最大値（秒）
+         * 利用可能なスタミナの最大値（秒）- ダッシュ最大持続時間
          * @type {number}
          * @private
          */
-        this.maxStamina = 7.0;
-
-        /**
-         * 回復可能なスタミナの最大値（秒）
-         * @type {number}
-         * @private
-         */
-        this.totalStamina = 10.0;
-
-        /**
-         * スタミナが完全に枯渇しているかどうか
-         * @type {boolean}
-         * @private
-         */
-        this.isStaminaDepleted = false;
-
-        /**
-         * 疲労状態の残り時間（秒）
-         * @type {number}
-         * @private
-         */
-        this.fatigueTimer = 0;
-
-        /**
-         * 疲労状態の継続時間（秒）
-         * @type {number}
-         * @private
-         */
-        this.fatigueDuration = 10.0;
+        this.maxStamina = 3.0;
 
         /**
          * ダッシュ倍率
@@ -208,18 +180,18 @@ export class Player extends Container {
         this.dashMultiplier = 1.25;
 
         /**
-         * 疲労時の速度倍率
+         * スタミナ枯渇時の速度倍率
          * @type {number}
          * @private
          */
-        this.fatigueMultiplier = 0.75;
+        this.depletedSpeedMultiplier = 0.5;
 
         /**
          * スタミナ回復速度（秒/秒）
          * @type {number}
          * @private
          */
-        this.staminaRecoverRate = 0.7; // 7秒/10秒 = 0.7秒/秒
+        this.staminaRecoverRate = 0.6; // 3秒 / 5秒 = 0.6秒/秒
 
         /**
          * スペースキーが押されているかどうか（ダッシュ用）
@@ -265,16 +237,13 @@ export class Player extends Container {
                 this.leftPressed = true;
             } else if (event.key === 'ArrowRight') {
                 this.rightPressed = true;
+            } else if (event.key === 'ArrowUp' && this.isGrounded) {
+                // 上矢印キーでジャンプ
+                this.velocityY = -this.jumpPower;
+                this.isGrounded = false;
             } else if (event.key === ' ') {
-                // スペースキーをダッシュとして使用（移動中ならダッシュ、静止中ならジャンプ）
-                if (!this.spacePressed) {
-                    this.spacePressed = true;
-                    // 移動していない＆接地中＆疲労していない場合のみジャンプ
-                    if (!this.isMoving && this.isGrounded && !this.isStaminaDepleted) {
-                        this.velocityY = -this.jumpPower;
-                        this.isGrounded = false;
-                    }
-                }
+                // スペースキーをダッシュとして使用
+                this.spacePressed = true;
             }
         });
 
@@ -316,19 +285,19 @@ export class Player extends Container {
             this.isGrounded = false;
         }
 
-        // スタミナ・疲労状態の更新
+        // スタミナ状態の更新
         this.updateStamina(deltaSeconds);
 
         // 移動速度を計算（スタミナ状態に応じて倍率を調整）
         let currentSpeedMultiplier = 1.0;
         
-        // 疲労状態の場合
-        if (this.fatigueTimer > 0) {
-            currentSpeedMultiplier = this.fatigueMultiplier;
+        // スタミナが枯渇している場合は通常速度を0.5倍に
+        if (this.stamina <= 0) {
+            currentSpeedMultiplier = this.depletedSpeedMultiplier; // 0.5倍
         }
         // ダッシュ状態の場合（スペース+移動 かつ スタミナがある）
-        else if (this.spacePressed && this.stamina > 0 && !this.isStaminaDepleted) {
-            currentSpeedMultiplier = this.dashMultiplier;
+        else if (this.spacePressed && this.isMoving && this.stamina > 0) {
+            currentSpeedMultiplier = this.dashMultiplier; // 1.25倍
         }
 
         // 左右の移動処理
@@ -351,41 +320,20 @@ export class Player extends Container {
     }
 
     /**
-     * スタミナと疲労状態を更新
+     * スタミナを更新
      * @method updateStamina
      * @param {number} deltaSeconds - デルタ時間（秒）
      * @private
      */
     updateStamina(deltaSeconds) {
-        // 疲労状態中
-        if (this.fatigueTimer > 0) {
-            this.fatigueTimer = Math.max(0, this.fatigueTimer - deltaSeconds);
-            return;
-        }
-
-        // ダッシュ中（スペース + 移動 + スタミナあり + 疲労していない）
-        if (this.spacePressed && this.isMoving && this.stamina > 0 && !this.isStaminaDepleted) {
+        // ダッシュ中（スペース + 移動 + スタミナあり）
+        if (this.spacePressed && this.isMoving && this.stamina > 0) {
             // スタミナを消費
             this.stamina = Math.max(0, this.stamina - deltaSeconds);
-
-            // スタミナが完全に枯渇した場合
-            if (this.stamina <= 0) {
-                this.isStaminaDepleted = true;
-                this.fatigueTimer = this.fatigueDuration;
-                // スタミナを0に確定
-                this.stamina = 0;
-            }
         }
-        // アイドル状態（ダッシュしていない かつ 疲労していない）
-        else if (!this.spacePressed && !this.isStaminaDepleted) {
+        // アイドル状態（ダッシュしていないか、移動していない）かつスタミナが最大でない
+        else if (this.stamina < this.maxStamina) {
             // スタミナを回復（maxStaminaまで）
-            this.stamina = Math.min(this.maxStamina, this.stamina + this.staminaRecoverRate * deltaSeconds);
-        }
-
-        // 疲労から回復した場合のリセット
-        if (this.fatigueTimer <= 0 && this.isStaminaDepleted) {
-            this.isStaminaDepleted = false;
-            // スタミナは回復開始
             this.stamina = Math.min(this.maxStamina, this.stamina + this.staminaRecoverRate * deltaSeconds);
         }
     }
@@ -587,23 +535,5 @@ export class Player extends Container {
      */
     getMaxStamina() {
         return this.maxStamina;
-    }
-
-    /**
-     * 疲労状態かどうかを取得
-     * @method isFatigued
-     * @returns {boolean} 疲労状態ならtrue
-     */
-    isFatigued() {
-        return this.fatigueTimer > 0;
-    }
-
-    /**
-     * スタミナが枯渇しているかどうかを取得
-     * @method isStaminaEmpty
-     * @returns {boolean} スタミナが枯渇していればtrue
-     */
-    isStaminaEmpty() {
-        return this.isStaminaDepleted;
     }
 }
