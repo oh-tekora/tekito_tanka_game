@@ -292,6 +292,11 @@ export class Player extends Container {
             this.isGrounded = false;
         }
 
+        // 左右の入力をチェックして移動状態を確定（速度計算前）
+        if (this.leftPressed || this.rightPressed) {
+            this.isMoving = true;
+        }
+
         // スタミナ状態の更新
         this.updateStamina(deltaSeconds);
 
@@ -312,12 +317,10 @@ export class Player extends Container {
         if (this.leftPressed) {
             this.x -= this.speed * currentSpeedMultiplier * delta;
             this.lastDirection = 'left';
-            this.isMoving = true;
         }
         if (this.rightPressed) {
             this.x += this.speed * currentSpeedMultiplier * delta;
             this.lastDirection = 'right';
-            this.isMoving = true;
         }
 
         // 移動範囲を制限
