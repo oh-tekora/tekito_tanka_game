@@ -10,6 +10,8 @@ import { GameArea } from './GameArea.js';
 import { Chocolate } from './Chocolate.js';
 import { Player } from './Player.js';
 import { FloatingText } from './FloatingText.js';
+import { StaminaGauge } from './StaminaGauge.js';
+import { StaminaChangeDisplay } from './StaminaChangeDisplay.js';
 
 const UI_FONT = 'DotGothic16Std-M, Arial, sans-serif';
 
@@ -165,6 +167,27 @@ export class Game extends Container {
         this.floatingTexts = [];
 
         /**
+         * スタミナゲージ
+         * @type {StaminaGauge|null}
+         * @private
+         */
+        this.staminaGauge = null;
+
+        /**
+         * スタミナ変動表示の配列
+         * @type {StaminaChangeDisplay[]}
+         * @private
+         */
+        this.staminaChanges = [];
+
+        /**
+         * 前フレームのスタミナ（変動を検知するため）
+         * @type {number}
+         * @private
+         */
+        this.previousStamina = 0;
+
+        /**
          * ゲーム進行中かどうか
          * @type {boolean}
          * @private
@@ -190,6 +213,7 @@ export class Game extends Container {
         this.setupPlayer();
         this.setupScoreText();
         this.setupTimeText();
+        this.setupStaminaGauge();
         this.setupCharacter();
         this.setupPointerEvents();
 
@@ -321,6 +345,31 @@ export class Game extends Container {
     }
 
     /**
+     * スタミナゲージのセットアップ
+     * @method setupStaminaGauge
+     * @private
+     */
+    setupStaminaGauge() {
+        if (!this.gameArea) return;
+
+        // スタミナゲージを作成
+        this.staminaGauge = new StaminaGauge(
+            this.gameArea.x,
+            this.gameArea.y - 40,
+            this.gameArea.getWidth(),
+            16
+        );
+
+        this.addChild(this.staminaGauge);
+
+        // 初期スタミナを反映
+        if (this.player) {
+            this.previousStamina = this.player.getStamina();
+            this.staminaGauge.setStamina(this.previousStamina, this.player.getMaxStamina());
+        }
+    }
+
+    /**
      * キャラクターのセットアップ
      * @method setupCharacter
      * @private
@@ -434,6 +483,12 @@ export class Game extends Container {
             this.timeText.x = this.gameArea.x + this.gameArea.getWidth() + 20;
             this.timeText.y = this.gameArea.y + 50;
         }
+
+        // スタミナゲージの位置を更新
+        if (this.staminaGauge && this.gameArea) {
+            this.staminaGauge.x = this.gameArea.x;
+            this.staminaGauge.y = this.gameArea.y - 40;
+        }
     }
 
     /**
@@ -502,6 +557,12 @@ export class Game extends Container {
 
         // フローティングテキストを更新
         this.updateFloatingTexts(delta);
+
+        // スタミナゲージを更新
+        this.updateStaminaGauge();
+
+        // スタミナ変動表示を更新
+        this.updateStaminaChanges(delta);
 
         // 各キャラクターを更新
         for (const character of this.characters) {
@@ -680,6 +741,84 @@ export class Game extends Container {
                 this.floatingTexts.splice(i, 1);
             }
         }
+    }
+
+    /**
+     * スタミナゲージを更新
+     * @method updateStaminaGauge
+     * @private
+     */
+    updateStaminaGauge() {
+        if (!this.staminaGauge || !this.player) return;
+
+        const currentStamina = this.player.getStamina();
+        const maxStamina = this.player.getMaxStamina();
+
+        // スタミナが変動した場合、アニメーション表示
+        if (Math.abs(currentStamina - this.previousStamina) > 0.01) {
+            const delta = currentStamina - this.previousStamina;
+            if (delta < 0) {
+                // スタミナを消費
+                this.showStaminaChange(Math.abs(delta), true);
+            } else if (delta > 0) {
+                // スタミナを回復
+                this.showStaminaChange(delta, false);
+            }
+            this.previousStamina = currentStamina;
+        }
+
+        // ゲージを更新
+        this.staminaGauge.setStamina(currentStamina, maxStamina);
+    }
+
+    /**
+     * スタミナ変動表示を更新
+     * @method updateStaminaChanges
+     * @param {number} delta - フレームデルタ
+     * @private
+     */
+    updateStaminaChanges(delta) {
+        if (this.staminaChanges.length === 0) return;
+
+        // スタミナ変動表示を更新
+        for (let i = this.staminaChanges.length - 1; i >= 0; i--) {
+            const staminaChange = this.staminaChanges[i];
+            const isActive = staminaChange.update(delta);
+
+            if (!isActive) {
+                // アニメーション終了時に削除
+                this.removeChild(staminaChange);
+                this.staminaChanges.splice(i, 1);
+            }
+        }
+    }
+
+    /**
+     * スタミナ変動表示を表示
+     * @method showStaminaChange
+     * @param {number} amount - スタミナ変動量
+     * @param {boolean} isConsumption - 消費ならtrue、回復ならfalse
+     * @private
+     */
+    showStaminaChange(amount, isConsumption) {
+        if (!this.staminaGauge) return;
+
+        // ゲージの中央位置
+        const gaugeY = this.staminaGauge.y + this.staminaGauge.height / 2;
+
+        const staminaChange = new StaminaChangeDisplay(
+            this.staminaGauge.x + this.staminaGauge.width / 2,
+            gaugeY,
+            amount,
+            {
+                duration: 1000,
+                fontSize: 16,
+                isConsumption: isConsumption
+            }
+        );
+
+        this.addChild(staminaChange);
+        this.staminaChanges.push(staminaChange);
     }
 
     /**
