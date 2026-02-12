@@ -54,12 +54,12 @@ export class Instructions extends Container {
             text: '操作方法\n\n左右矢印キー：移動\n\n上矢印キー：ジャンプ\n\nスペースキー＋\n左右矢印キー：ダッシュ\n\n※ダッシュはスタミナ\nゲージを消費します。\n\nスタミナを使い切ると、\n全回復するまで移動速度が\n遅くなります',
             style: {
                 fontFamily: UI_FONT,
-                fontSize: 16,
+                fontSize: 24,
                 fontWeight: 'bold',
                 fill: 0xffffff,
                 wordWrap: true,
-                wordWrapWidth: 200,
-                lineHeight: 28
+                wordWrapWidth: 300,
+                lineHeight: 42
             }
         });
         instructionsText.x = 20;

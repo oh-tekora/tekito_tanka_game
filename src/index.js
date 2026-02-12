@@ -9,6 +9,7 @@ import { Game } from './game.js';
 import { Opening } from './Opening.js';
 import { Ending } from './Ending.js';
 import { Instructions } from './Instructions.js';
+import { Story } from './Story.js';
 
 /**
  * PixiJSアプリケーションの初期化クラス
@@ -84,6 +85,7 @@ class Init {
     const init = new Init();
     const app = await init.setup();
     let currentScene = null;
+    let hasPlayedBefore = false; // 初回プレイかどうかのフラグ
 
     const loadFonts = async () => {
         if (!document.fonts || !document.fonts.load) {
@@ -110,7 +112,15 @@ class Init {
 
     const showOpening = () => {
         const opening = new Opening(app, () => {
-            showGame();
+            // STARTボタンが押されたとき
+            if (!hasPlayedBefore) {
+                // 初回はストーリーを表示
+                showStory();
+                hasPlayedBefore = true;
+            } else {
+                // 2回目以降は直接ゲームへ
+                showGame();
+            }
         }, () => {
             showInstructions();
         });
@@ -124,6 +134,13 @@ class Init {
             showGame();
         });
         setScene(instructions);
+    };
+
+    const showStory = () => {
+        const story = new Story(app, () => {
+            showInstructions();
+        });
+        setScene(story);
     };
 
     const showGame = () => {
