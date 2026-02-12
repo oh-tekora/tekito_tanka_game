@@ -113,9 +113,16 @@ export class Opening extends Container {
 
             if (this.startButton) {
                 this.startButton.clear();
-                this.startButton.roundRect(startButtonX, startButtonY, buttonWidth, buttonHeight, 12);
+                
+                // ドット絵風のボタン（四角形、太いボーダー）
+                // 外側の明るいボーダー
+                this.startButton.rect(startButtonX, startButtonY, buttonWidth, buttonHeight);
                 this.startButton.fill(0xff6b6b);
-                this.startButton.stroke({ color: 0xffffff, width: 4 });
+                this.startButton.stroke({ color: 0xffffff, width: 6 });
+                
+                // 内側の影（ドット絵風の立体感）
+                this.startButton.rect(startButtonX + 4, startButtonY + 4, buttonWidth - 8, buttonHeight - 8);
+                this.startButton.stroke({ color: 0xcc5555, width: 2 });
             }
 
             if (this.startButtonText) {
@@ -133,9 +140,16 @@ export class Opening extends Container {
 
             if (this.instructionsButton) {
                 this.instructionsButton.clear();
-                this.instructionsButton.roundRect(instructionsButtonX, instructionsButtonY, buttonWidth, buttonHeight, 12);
+                
+                // ドット絵風のボタン（四角形、太いボーダー）
+                // 外側の明るいボーダー
+                this.instructionsButton.rect(instructionsButtonX, instructionsButtonY, buttonWidth, buttonHeight);
                 this.instructionsButton.fill(0x4ecdc4);
-                this.instructionsButton.stroke({ color: 0xffffff, width: 4 });
+                this.instructionsButton.stroke({ color: 0xffffff, width: 6 });
+                
+                // 内側の影（ドット絵風の立体感）
+                this.instructionsButton.rect(instructionsButtonX + 4, instructionsButtonY + 4, buttonWidth - 8, buttonHeight - 8);
+                this.instructionsButton.stroke({ color: 0x3da39c, width: 2 });
             }
 
             if (this.instructionsButtonText) {

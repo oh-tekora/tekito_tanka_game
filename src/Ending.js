@@ -137,9 +137,15 @@ export class Ending extends Container {
 
             if (this.topButton) {
                 this.topButton.clear();
-                this.topButton.roundRect(topButtonX, buttonY, buttonWidth, buttonHeight, 12);
+                
+                // ドット絵風のボタン
+                this.topButton.rect(topButtonX, buttonY, buttonWidth, buttonHeight);
                 this.topButton.fill(0x666666);
-                this.topButton.stroke({ color: 0xffffff, width: 4 });
+                this.topButton.stroke({ color: 0xffffff, width: 6 });
+                
+                // 内側の影
+                this.topButton.rect(topButtonX + 4, buttonY + 4, buttonWidth - 8, buttonHeight - 8);
+                this.topButton.stroke({ color: 0x4d4d4d, width: 2 });
             }
 
             if (this.topButtonText) {
@@ -156,9 +162,15 @@ export class Ending extends Container {
 
             if (this.retryButton) {
                 this.retryButton.clear();
-                this.retryButton.roundRect(retryButtonX, buttonY, buttonWidth, buttonHeight, 12);
+                
+                // ドット絵風のボタン
+                this.retryButton.rect(retryButtonX, buttonY, buttonWidth, buttonHeight);
                 this.retryButton.fill(0x66ccff);
-                this.retryButton.stroke({ color: 0xffffff, width: 4 });
+                this.retryButton.stroke({ color: 0xffffff, width: 6 });
+                
+                // 内側の影
+                this.retryButton.rect(retryButtonX + 4, buttonY + 4, buttonWidth - 8, buttonHeight - 8);
+                this.retryButton.stroke({ color: 0x52a3cc, width: 2 });
             }
 
             if (this.retryButtonText) {

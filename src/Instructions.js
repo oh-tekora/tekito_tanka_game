@@ -161,9 +161,15 @@ export class Instructions extends Container {
 
             if (this.topButton) {
                 this.topButton.clear();
-                this.topButton.roundRect(topButtonX, topButtonY, buttonWidth, buttonHeight, 10);
+                
+                // ドット絵風のボタン
+                this.topButton.rect(topButtonX, topButtonY, buttonWidth, buttonHeight);
                 this.topButton.fill(0x666666);
-                this.topButton.stroke({ color: 0xffffff, width: 3 });
+                this.topButton.stroke({ color: 0xffffff, width: 5 });
+                
+                // 内側の影
+                this.topButton.rect(topButtonX + 3, topButtonY + 3, buttonWidth - 6, buttonHeight - 6);
+                this.topButton.stroke({ color: 0x4d4d4d, width: 2 });
             }
 
             if (this.topButtonText) {
@@ -181,9 +187,15 @@ export class Instructions extends Container {
 
             if (this.startButton) {
                 this.startButton.clear();
-                this.startButton.roundRect(startButtonX, startButtonY, buttonWidth, buttonHeight, 10);
+                
+                // ドット絵風のボタン
+                this.startButton.rect(startButtonX, startButtonY, buttonWidth, buttonHeight);
                 this.startButton.fill(0xff6b6b);
-                this.startButton.stroke({ color: 0xffffff, width: 3 });
+                this.startButton.stroke({ color: 0xffffff, width: 5 });
+                
+                // 内側の影
+                this.startButton.rect(startButtonX + 3, startButtonY + 3, buttonWidth - 6, buttonHeight - 6);
+                this.startButton.stroke({ color: 0xcc5555, width: 2 });
             }
 
             if (this.startButtonText) {
