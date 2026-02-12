@@ -88,6 +88,27 @@ export class Player extends Container {
         this.speed = 6.25;
 
         /**
+         * ダッシュ速度
+         * @type {number}
+         * @private
+         */
+        this.dashSpeed = 12.5;
+
+        /**
+         * スペースキーが押されているか
+         * @type {boolean}
+         * @private
+         */
+        this.spacePressed = false;
+
+        /**
+         * 上キーが押されているか
+         * @type {boolean}
+         * @private
+         */
+        this.upPressed = false;
+
+        /**
          * 左キーが押されているか
          * @type {boolean}
          * @private
@@ -157,55 +178,54 @@ export class Player extends Container {
          */
         this.baseY = y;
 
-        // スタミナ関連プロパティ
         /**
-         * 現在のスタミナ（秒）
+         * 現在のスタミナ
          * @type {number}
          * @private
          */
         this.stamina = 2.0;
 
         /**
-         * 利用可能なスタミナの最大値（秒）- ダッシュ最大持続時間
+         * 最大スタミナ
          * @type {number}
          * @private
          */
         this.maxStamina = 2.0;
 
         /**
-         * スタミナが完全に枯渇しているかどうか
+         * スタミナ回復速度（秒あたり）
+         * @type {number}
+         * @private
+         */
+        this.staminaRecoveryRate = 0.5;
+
+        /**
+         * スタミナ消費速度（秒あたり）
+         * @type {number}
+         * @private
+         */
+        this.staminaConsumptionRate = 1.0;
+
+        /**
+         * スタミナが空かどうか
          * @type {boolean}
          * @private
          */
-        this.isStaminaDepleted = false;
+        this.isStaminaEmpty = false;
 
         /**
-         * ダッシュ倍率
-         * @type {number}
+         * キーダウンイベントハンドラー
+         * @type {Function|null}
          * @private
          */
-        this.dashMultiplier = 1.5;
+        this.keydownHandler = null;
 
         /**
-         * 疲労時の速度倍率
-         * @type {number}
+         * キーアップイベントハンドラー
+         * @type {Function|null}
          * @private
          */
-        this.fatigueMultiplier = 0.5;
-
-        /**
-         * スタミナ回復速度（秒/秒）
-         * @type {number}
-         * @private
-         */
-        this.staminaRecoverRate = 1.0; // 2秒 / 2秒 = 1.0秒/秒
-
-        /**
-         * スペースキーが押されているかどうか（ダッシュ用）
-         * @type {boolean}
-         * @private
-         */
-        this.spacePressed = false;
+        this.keyupHandler = null;
 
         // 位置を設定
         this.x = x;
@@ -239,30 +259,36 @@ export class Player extends Container {
      * @private
      */
     setupKeyboardEvents() {
-        window.addEventListener('keydown', (event) => {
+        this.keydownHandler = (event) => {
             if (event.key === 'ArrowLeft') {
                 this.leftPressed = true;
             } else if (event.key === 'ArrowRight') {
                 this.rightPressed = true;
             } else if (event.key === 'ArrowUp' && this.isGrounded) {
-                // 上矢印キーでジャンプ
+                // 上キーでジャンプ
                 this.velocityY = -this.jumpPower;
                 this.isGrounded = false;
+                this.upPressed = true;
             } else if (event.key === ' ') {
-                // スペースキーをダッシュとして使用
+                // スペースキーでダッシュ
                 this.spacePressed = true;
             }
-        });
+        };
 
-        window.addEventListener('keyup', (event) => {
+        this.keyupHandler = (event) => {
             if (event.key === 'ArrowLeft') {
                 this.leftPressed = false;
             } else if (event.key === 'ArrowRight') {
                 this.rightPressed = false;
+            } else if (event.key === 'ArrowUp') {
+                this.upPressed = false;
             } else if (event.key === ' ') {
                 this.spacePressed = false;
             }
-        });
+        };
+
+        window.addEventListener('keydown', this.keydownHandler);
+        window.addEventListener('keyup', this.keyupHandler);
     }
 
     /**
@@ -270,7 +296,7 @@ export class Player extends Container {
      * @method update
      * @param {number} delta - 前フレームからの経過時間（60FPS基準で1.0が標準）
      */
-    update(delta) {
+    update(delta = 1.0) {
         if (!this.currentSprite) {
             return;
         }
@@ -292,8 +318,42 @@ export class Player extends Container {
             this.isGrounded = false;
         }
 
-        // 左右の入力をチェックして移動状態を確定（速度計算前）
-        if (this.leftPressed || this.rightPressed) {
+        // ダッシュかどうかを判定
+        const isDashing = this.spacePressed && !this.isStaminaEmpty && (this.leftPressed || this.rightPressed);
+        const currentSpeed = isDashing ? this.dashSpeed : this.speed;
+
+        // スタミナの処理（deltaTimeを60FPSベースで正規化）
+        const deltaSeconds = delta / 60;
+        if (isDashing) {
+            // ダッシュ中はスタミナを消費
+            this.stamina -= this.staminaConsumptionRate * deltaSeconds;
+            if (this.stamina <= 0) {
+                this.stamina = 0;
+                this.isStaminaEmpty = true;
+            }
+        } else {
+            // ダッシュしていない時は回復
+            if (this.isStaminaEmpty) {
+                // 空になった場合は満タンまで回復
+                this.stamina += this.staminaRecoveryRate * deltaSeconds;
+                if (this.stamina >= this.maxStamina) {
+                    this.stamina = this.maxStamina;
+                    this.isStaminaEmpty = false;
+                }
+            } else {
+                // 通常回復
+                this.stamina += this.staminaRecoveryRate * deltaSeconds;
+                if (this.stamina > this.maxStamina) {
+                    this.stamina = this.maxStamina;
+                }
+            }
+        }
+
+        // 左右の移動処理
+        const prevX = this.x;
+        if (this.leftPressed) {
+            this.x -= currentSpeed * delta;
+            this.lastDirection = 'left';
             this.isMoving = true;
         }
 
@@ -319,7 +379,7 @@ export class Player extends Container {
             this.lastDirection = 'left';
         }
         if (this.rightPressed) {
-            this.x += this.speed * currentSpeedMultiplier * delta;
+            this.x += currentSpeed * delta;
             this.lastDirection = 'right';
         }
 
@@ -466,6 +526,10 @@ export class Player extends Container {
 
         this.currentSprite = this.isMoving ? this.moveSprite : this.stopSprite;
         this.addChild(this.currentSprite);
+        
+        // 確実に可視化
+        this.visible = true;
+        this.currentSprite.visible = true;
 
         this.applyBounds();
         this.updateSprite();
@@ -543,29 +607,22 @@ export class Player extends Container {
     }
 
     /**
-     * スタミナの現在値を取得
-     * @method getStamina
-     * @returns {number} 現在のスタミナ
+     * Playerインスタンスを破棄し、イベントリスナーをクリーンアップ
+     * @method destroy
+     * @param {Object} options - 破棄オプション
      */
-    getStamina() {
-        return this.stamina;
-    }
+    destroy(options) {
+        // キーボードイベントリスナーを削除
+        if (this.keydownHandler) {
+            window.removeEventListener('keydown', this.keydownHandler);
+            this.keydownHandler = null;
+        }
+        if (this.keyupHandler) {
+            window.removeEventListener('keyup', this.keyupHandler);
+            this.keyupHandler = null;
+        }
 
-    /**
-     * スタミナの最大値を取得
-     * @method getMaxStamina
-     * @returns {number} スタミナの最大値
-     */
-    getMaxStamina() {
-        return this.maxStamina;
-    }
-
-    /**
-     * 疲労状態かどうかを取得
-     * @method isFatigued
-     * @returns {boolean} 疲労状態ならtrue
-     */
-    isFatigued() {
-        return this.isStaminaDepleted;
+        // 親クラスのdestroyを呼び出し
+        super.destroy(options);
     }
 }

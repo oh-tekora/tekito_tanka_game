@@ -1,6 +1,6 @@
 @font-face {
     font-family: "DotGothic16Std-M";
-    src: url("/fonts/FOT-DotGothic16Std-M.otf") format("opentype");
+    src: url("../public/fonts/FOT-DotGothic16Std-M.otf") format("opentype");
     font-display: swap;
 }
 

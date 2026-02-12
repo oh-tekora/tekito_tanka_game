@@ -77,26 +77,50 @@ export class Ending extends Container {
     }
 
     layout() {
-        const centerX = this.app.screen.width / 2;
-        const centerY = this.app.screen.height / 2;
+        try {
+            const centerX = this.app.screen.width / 2;
+            const centerY = this.app.screen.height / 2;
 
-        this.titleText.x = centerX - this.titleText.width / 2;
-        this.titleText.y = centerY - 160;
+            if (this.titleText) {
+                try {
+                    this.titleText.x = centerX - this.titleText.width / 2;
+                    this.titleText.y = centerY - 160;
+                } catch (e) {
+                    console.warn('Title text layout error:', e);
+                }
+            }
 
-        this.scoreText.x = centerX - this.scoreText.width / 2;
-        this.scoreText.y = centerY - 90;
+            if (this.scoreText) {
+                try {
+                    this.scoreText.x = centerX - this.scoreText.width / 2;
+                    this.scoreText.y = centerY - 90;
+                } catch (e) {
+                    console.warn('Score text layout error:', e);
+                }
+            }
 
-        const buttonWidth = 200;
-        const buttonHeight = 64;
-        const buttonX = centerX - buttonWidth / 2;
-        const buttonY = centerY + 10;
+            const buttonWidth = 200;
+            const buttonHeight = 64;
+            const buttonX = centerX - buttonWidth / 2;
+            const buttonY = centerY + 10;
 
-        this.button.clear();
-        this.button.roundRect(buttonX, buttonY, buttonWidth, buttonHeight, 12);
-        this.button.fill(0x66ccff);
-        this.button.stroke({ color: 0xffffff, width: 4 });
+            if (this.button) {
+                this.button.clear();
+                this.button.roundRect(buttonX, buttonY, buttonWidth, buttonHeight, 12);
+                this.button.fill(0x66ccff);
+                this.button.stroke({ color: 0xffffff, width: 4 });
+            }
 
-        this.buttonText.x = centerX - this.buttonText.width / 2;
-        this.buttonText.y = buttonY + (buttonHeight - this.buttonText.height) / 2;
+            if (this.buttonText) {
+                try {
+                    this.buttonText.x = centerX - this.buttonText.width / 2;
+                    this.buttonText.y = buttonY + (buttonHeight - this.buttonText.height) / 2;
+                } catch (e) {
+                    console.warn('Button text layout error:', e);
+                }
+            }
+        } catch (e) {
+            console.error('Layout error:', e);
+        }
     }
 }

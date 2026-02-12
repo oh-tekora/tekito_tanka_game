@@ -11,7 +11,6 @@ import { Chocolate } from './Chocolate.js';
 import { Player } from './Player.js';
 import { FloatingText } from './FloatingText.js';
 import { StaminaGauge } from './StaminaGauge.js';
-import { StaminaChangeDisplay } from './StaminaChangeDisplay.js';
 
 const UI_FONT = 'DotGothic16Std-M, Arial, sans-serif';
 
@@ -174,20 +173,6 @@ export class Game extends Container {
         this.staminaGauge = null;
 
         /**
-         * スタミナ変動表示の配列
-         * @type {StaminaChangeDisplay[]}
-         * @private
-         */
-        this.staminaChanges = [];
-
-        /**
-         * 前フレームのスタミナ（変動を検知するため）
-         * @type {number}
-         * @private
-         */
-        this.previousStamina = 0;
-
-        /**
          * ゲーム進行中かどうか
          * @type {boolean}
          * @private
@@ -211,6 +196,7 @@ export class Game extends Container {
         this.setupBackground();
         this.setupGameArea();
         this.setupPlayer();
+        this.setupStaminaGauge();
         this.setupScoreText();
         this.setupTimeText();
         this.setupStaminaGauge();
@@ -290,6 +276,27 @@ export class Game extends Container {
 
         this.player = new Player(playerX, playerY, minX, maxX);
         this.addChild(this.player);
+    }
+
+    /**
+     * スタミナゲージのセットアップ
+     * @method setupStaminaGauge
+     * @private
+     */
+    setupStaminaGauge() {
+        if (!this.gameArea || !this.player) return;
+
+        // スタミナゲージをゲームエリアの上に配置
+        const gaugeWidth = this.gameArea.getWidth();
+        const gaugeHeight = 20;
+        const gaugeX = this.gameArea.x;
+        const gaugeY = this.gameArea.y - gaugeHeight - 10;
+
+        this.staminaGauge = new StaminaGauge(gaugeX, gaugeY, gaugeWidth, gaugeHeight);
+        this.addChild(this.staminaGauge);
+        
+        // 初期値を設定
+        this.staminaGauge.setStamina(this.player.stamina, this.player.maxStamina);
     }
 
     /**
@@ -544,6 +551,11 @@ export class Game extends Container {
         // プレイヤーを更新
         if (this.player) {
             this.player.update(delta);
+            
+            // スタミナゲージを更新
+            if (this.staminaGauge) {
+                this.staminaGauge.setStamina(this.player.stamina, this.player.maxStamina);
+            }
         }
 
         // チョコレート生成タイマーを更新
@@ -987,5 +999,21 @@ export class Game extends Container {
                 char1.y -= moveDistance * ny;
             }
         }
+    }
+
+    /**
+     * Gameインスタンスを破棄し、Playerなどのリソースをクリーンアップ
+     * @method destroy
+     * @param {Object} options - 破棄オプション
+     */
+    destroy(options) {
+        // Playerを破棄
+        if (this.player) {
+            this.player.destroy({ children: true });
+            this.player = null;
+        }
+
+        // 親クラスのdestroyを呼び出し
+        super.destroy(options);
     }
 }
