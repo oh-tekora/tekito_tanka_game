@@ -175,11 +175,13 @@ export class Ending extends Container {
 
             if (this.rankText && this.rankDescText) {
                 try {
-                    const rankY = centerY - 20;
+                    // scoreと級の行間を1.25倍（87.5px）
+                    const rankY = centerY - 2.5;
                     this.rankText.x = centerX - this.rankText.width / 2;
                     this.rankText.y = rankY;
 
-                    const descY = rankY + this.rankText.height + 10;
+                    // 級とコメントの行間を1.25倍（12.5px）
+                    const descY = rankY + this.rankText.height + 12.5;
                     this.rankDescText.x = centerX - this.rankDescText.width / 2;
                     this.rankDescText.y = descY;
                 } catch (e) {
