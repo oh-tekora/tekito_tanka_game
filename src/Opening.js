@@ -2,7 +2,7 @@
  * @fileoverview Opening screen
  */
 
-import { Container, Graphics, Text, Sprite, Texture } from 'pixi.js';
+import { Container, Graphics, Text, Sprite, Texture, Assets } from 'pixi.js';
 
 const UI_FONT = 'DotGothic16Std-M, Arial, sans-serif';
 
@@ -29,27 +29,30 @@ export class Opening extends Container {
         });
     }
 
-    init() {
+    async init() {
+        console.log('Opening.init() called');
+        
         // タイトルロゴを読み込んで表示
         try {
-            this.titleLogo = Sprite.from('/assets/title_rogo.png');
+            console.log('Loading title logo from /assets/title_rogo.png');
+            
+            // Assets APIで明示的にロード
+            const texture = await Assets.load('/assets/title_rogo.png');
+            console.log('Texture loaded:', texture);
+            
+            this.titleLogo = new Sprite(texture);
+            console.log('Sprite created:', this.titleLogo);
             this.titleLogo.anchor.set(0.5);
             this.addChild(this.titleLogo);
+            console.log('Logo added to container');
             
-            // 画像読み込み完了時のコールバック
-            this.titleLogo.onLoad = () => {
-                try {
-                    // 横幅を最大400pxに調整
-                    const maxWidth = 400;
-                    if (this.titleLogo && this.titleLogo.width > maxWidth) {
-                        const scale = maxWidth / this.titleLogo.width;
-                        this.titleLogo.scale.set(scale);
-                    }
-                    this.layout();
-                } catch (e) {
-                    console.warn('Logo setup error:', e);
-                }
-            };
+            // 横幅を最大400pxに調整
+            const maxWidth = 400;
+            if (this.titleLogo && this.titleLogo.width > maxWidth) {
+                const scale = maxWidth / this.titleLogo.width;
+                this.titleLogo.scale.set(scale);
+                console.log('Logo scaled:', scale);
+            }
         } catch (e) {
             console.error('Title logo initialization failed:', e);
         }
