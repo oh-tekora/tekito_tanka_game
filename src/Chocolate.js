@@ -20,8 +20,10 @@ export class Chocolate extends Container {
      * @param {number} y - Y座標
      * @param {string} texturePath - チョコレート画像のパス
      * @param {number} [scale=1.0] - スケール（大きさ）
+     * @param {number} [points=1] - 得点
+     * @param {number} [gravityMultiplier=1.0] - 落下速度の倍率
      */
-    constructor(x, y, texturePath, scale = 1.0, points = 1) {
+    constructor(x, y, texturePath, scale = 1.0, points = 1, gravityMultiplier = 1.0) {
         super();
 
         /**
@@ -57,7 +59,7 @@ export class Chocolate extends Container {
          * @type {number}
          * @private
          */
-        this.gravity = 0.15;
+        this.gravity = 0.15 * gravityMultiplier;
 
         /**
          * スケール

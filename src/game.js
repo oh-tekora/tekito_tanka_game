@@ -110,8 +110,8 @@ export class Game extends Container {
          * @private
          */
         this.chocolateTextures = [
-            '/assets/チョコ.png',
-            '/assets/チョコ2.png'
+            '/assets/chocolate1.png',
+            '/assets/chocolate2.png'
         ];
 
         /**
@@ -548,10 +548,12 @@ export class Game extends Container {
     spawnChocolate() {
         if (!this.gameArea) return;
 
-        // ランダムなテクスチャを選択
-        const textureIndex = Math.floor(Math.random() * this.chocolateTextures.length);
+        // ランダムなテクスチャを選択（70%でchocolate1、30%でchocolate2）
+        const random = Math.random();
+        const textureIndex = random < 0.7 ? 0 : 1;
         const texturePath = this.chocolateTextures[textureIndex];
-        const points = texturePath.includes('チョコ2') ? 3 : 1;
+        const points = texturePath.includes('chocolate2') ? 3 : 1;
+        const gravityMultiplier = texturePath.includes('chocolate2') ? 1.1 : 0.9;
 
         // ゲームエリアの幅内でランダムなX座標を決定
         const areaWidth = this.gameArea.getWidth();
@@ -562,7 +564,7 @@ export class Game extends Container {
         const spawnX = this.gameArea.x + randomX;
 
         // チョコレートを生成（スケールを調整）
-        const chocolate = new Chocolate(spawnX, spawnY, texturePath, 0.08, points);
+        const chocolate = new Chocolate(spawnX, spawnY, texturePath, 0.08, points, gravityMultiplier);
         this.chocolates.push(chocolate);
         this.addChild(chocolate);
     }
