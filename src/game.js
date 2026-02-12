@@ -561,9 +561,6 @@ export class Game extends Container {
         // スタミナゲージを更新
         this.updateStaminaGauge();
 
-        // スタミナ変動表示を更新
-        this.updateStaminaChanges(delta);
-
         // 各キャラクターを更新
         for (const character of this.characters) {
             // ドラッグ中でないキャラクターのみ更新
@@ -753,19 +750,6 @@ export class Game extends Container {
 
         const currentStamina = this.player.getStamina();
         const maxStamina = this.player.getMaxStamina();
-
-        // スタミナが変動した場合、アニメーション表示
-        if (Math.abs(currentStamina - this.previousStamina) > 0.01) {
-            const delta = currentStamina - this.previousStamina;
-            if (delta < 0) {
-                // スタミナを消費
-                this.showStaminaChange(Math.abs(delta), true);
-            } else if (delta > 0) {
-                // スタミナを回復
-                this.showStaminaChange(delta, false);
-            }
-            this.previousStamina = currentStamina;
-        }
 
         // ゲージを更新
         this.staminaGauge.setStamina(currentStamina, maxStamina);
