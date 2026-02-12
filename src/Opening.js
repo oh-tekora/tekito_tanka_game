@@ -90,38 +90,64 @@ export class Opening extends Container {
     }
 
     layout() {
-        const centerX = this.app.screen.width / 2;
-        const centerY = this.app.screen.height / 2;
+        try {
+            const centerX = this.app.screen.width / 2;
+            const centerY = this.app.screen.height / 2;
 
-        this.titleText.x = centerX - this.titleText.width / 2;
-        this.titleText.y = centerY - 140;
+            if (this.titleText) {
+                try {
+                    this.titleText.x = centerX - this.titleText.width / 2;
+                    this.titleText.y = centerY - 140;
+                } catch (e) {
+                    console.warn('Title text layout error:', e);
+                }
+            }
 
-        const buttonWidth = 200;
-        const buttonHeight = 64;
-        const buttonSpacing = 30;
+            const buttonWidth = 200;
+            const buttonHeight = 64;
+            const buttonSpacing = 30;
 
-        // STARTボタン
-        const startButtonX = centerX - buttonWidth / 2;
-        const startButtonY = centerY - buttonHeight / 2;
+            // STARTボタン
+            const startButtonX = centerX - buttonWidth / 2;
+            const startButtonY = centerY - buttonHeight / 2;
 
-        this.startButton.clear();
-        this.startButton.roundRect(startButtonX, startButtonY, buttonWidth, buttonHeight, 12);
-        this.startButton.fill(0xff6b6b);
-        this.startButton.stroke({ color: 0xffffff, width: 4 });
+            if (this.startButton) {
+                this.startButton.clear();
+                this.startButton.roundRect(startButtonX, startButtonY, buttonWidth, buttonHeight, 12);
+                this.startButton.fill(0xff6b6b);
+                this.startButton.stroke({ color: 0xffffff, width: 4 });
+            }
 
-        this.startButtonText.x = centerX - this.startButtonText.width / 2;
-        this.startButtonText.y = startButtonY + buttonHeight / 2 - this.startButtonText.height / 2;
+            if (this.startButtonText) {
+                try {
+                    this.startButtonText.x = centerX - this.startButtonText.width / 2;
+                    this.startButtonText.y = startButtonY + buttonHeight / 2 - this.startButtonText.height / 2;
+                } catch (e) {
+                    console.warn('Start button text layout error:', e);
+                }
+            }
 
-        // 操作方法ボタン
-        const instructionsButtonX = centerX - buttonWidth / 2;
-        const instructionsButtonY = startButtonY + buttonHeight + buttonSpacing;
+            // 操作方法ボタン
+            const instructionsButtonX = centerX - buttonWidth / 2;
+            const instructionsButtonY = startButtonY + buttonHeight + buttonSpacing;
 
-        this.instructionsButton.clear();
-        this.instructionsButton.roundRect(instructionsButtonX, instructionsButtonY, buttonWidth, buttonHeight, 12);
-        this.instructionsButton.fill(0x4ecdc4);
-        this.instructionsButton.stroke({ color: 0xffffff, width: 4 });
+            if (this.instructionsButton) {
+                this.instructionsButton.clear();
+                this.instructionsButton.roundRect(instructionsButtonX, instructionsButtonY, buttonWidth, buttonHeight, 12);
+                this.instructionsButton.fill(0x4ecdc4);
+                this.instructionsButton.stroke({ color: 0xffffff, width: 4 });
+            }
 
-        this.instructionsButtonText.x = centerX - this.instructionsButtonText.width / 2;
-        this.instructionsButtonText.y = instructionsButtonY + buttonHeight / 2 - this.instructionsButtonText.height / 2;
+            if (this.instructionsButtonText) {
+                try {
+                    this.instructionsButtonText.x = centerX - this.instructionsButtonText.width / 2;
+                    this.instructionsButtonText.y = instructionsButtonY + buttonHeight / 2 - this.instructionsButtonText.height / 2;
+                } catch (e) {
+                    console.warn('Instructions button text layout error:', e);
+                }
+            }
+        } catch (e) {
+            console.error('Layout error:', e);
+        }
     }
 }

@@ -88,6 +88,27 @@ export class Player extends Container {
         this.speed = 6.25;
 
         /**
+         * ダッシュ速度
+         * @type {number}
+         * @private
+         */
+        this.dashSpeed = 12.5;
+
+        /**
+         * スペースキーが押されているか
+         * @type {boolean}
+         * @private
+         */
+        this.spacePressed = false;
+
+        /**
+         * 上キーが押されているか
+         * @type {boolean}
+         * @private
+         */
+        this.upPressed = false;
+
+        /**
          * 左キーが押されているか
          * @type {boolean}
          * @private
@@ -199,6 +220,55 @@ export class Player extends Container {
          */
         this.baseY = y;
 
+        /**
+         * 現在のスタミナ
+         * @type {number}
+         * @private
+         */
+        this.stamina = 2.0;
+
+        /**
+         * 最大スタミナ
+         * @type {number}
+         * @private
+         */
+        this.maxStamina = 2.0;
+
+        /**
+         * スタミナ回復速度（秒あたり）
+         * @type {number}
+         * @private
+         */
+        this.staminaRecoveryRate = 0.5;
+
+        /**
+         * スタミナ消費速度（秒あたり）
+         * @type {number}
+         * @private
+         */
+        this.staminaConsumptionRate = 1.0;
+
+        /**
+         * スタミナが空かどうか
+         * @type {boolean}
+         * @private
+         */
+        this.isStaminaEmpty = false;
+
+        /**
+         * キーダウンイベントハンドラー
+         * @type {Function|null}
+         * @private
+         */
+        this.keydownHandler = null;
+
+        /**
+         * キーアップイベントハンドラー
+         * @type {Function|null}
+         * @private
+         */
+        this.keyupHandler = null;
+
         // 位置を設定
         this.x = x;
         this.y = y;
@@ -231,28 +301,36 @@ export class Player extends Container {
      * @private
      */
     setupKeyboardEvents() {
-        window.addEventListener('keydown', (event) => {
+        this.keydownHandler = (event) => {
             if (event.key === 'ArrowLeft') {
                 this.leftPressed = true;
             } else if (event.key === 'ArrowRight') {
                 this.rightPressed = true;
-            } else if (event.key === ' ' && this.isGrounded) {
-                // スペースキーでジャンプ
+            } else if (event.key === 'ArrowUp' && this.isGrounded) {
+                // 上キーでジャンプ
                 this.velocityY = -this.jumpPower;
                 this.isGrounded = false;
-                this.jumpPressed = true;
+                this.upPressed = true;
+            } else if (event.key === ' ') {
+                // スペースキーでダッシュ
+                this.spacePressed = true;
             }
-        });
+        };
 
-        window.addEventListener('keyup', (event) => {
+        this.keyupHandler = (event) => {
             if (event.key === 'ArrowLeft') {
                 this.leftPressed = false;
             } else if (event.key === 'ArrowRight') {
                 this.rightPressed = false;
+            } else if (event.key === 'ArrowUp') {
+                this.upPressed = false;
             } else if (event.key === ' ') {
-                this.jumpPressed = false;
+                this.spacePressed = false;
             }
-        });
+        };
+
+        window.addEventListener('keydown', this.keydownHandler);
+        window.addEventListener('keyup', this.keyupHandler);
     }
 
     /**
@@ -260,7 +338,7 @@ export class Player extends Container {
      * @method update
      * @param {number} delta - 前フレームからの経過時間（60FPS基準で1.0が標準）
      */
-    update(delta) {
+    update(delta = 1.0) {
         if (!this.currentSprite) {
             return;
         }
@@ -279,14 +357,46 @@ export class Player extends Container {
             this.isGrounded = false;
         }
 
+        // ダッシュかどうかを判定
+        const isDashing = this.spacePressed && !this.isStaminaEmpty && (this.leftPressed || this.rightPressed);
+        const currentSpeed = isDashing ? this.dashSpeed : this.speed;
+
+        // スタミナの処理（deltaTimeを60FPSベースで正規化）
+        const deltaSeconds = delta / 60;
+        if (isDashing) {
+            // ダッシュ中はスタミナを消費
+            this.stamina -= this.staminaConsumptionRate * deltaSeconds;
+            if (this.stamina <= 0) {
+                this.stamina = 0;
+                this.isStaminaEmpty = true;
+            }
+        } else {
+            // ダッシュしていない時は回復
+            if (this.isStaminaEmpty) {
+                // 空になった場合は満タンまで回復
+                this.stamina += this.staminaRecoveryRate * deltaSeconds;
+                if (this.stamina >= this.maxStamina) {
+                    this.stamina = this.maxStamina;
+                    this.isStaminaEmpty = false;
+                }
+            } else {
+                // 通常回復
+                this.stamina += this.staminaRecoveryRate * deltaSeconds;
+                if (this.stamina > this.maxStamina) {
+                    this.stamina = this.maxStamina;
+                }
+            }
+        }
+
         // 左右の移動処理
+        const prevX = this.x;
         if (this.leftPressed) {
-            this.x -= this.speed * delta;
+            this.x -= currentSpeed * delta;
             this.lastDirection = 'left';
             this.isMoving = true;
         }
         if (this.rightPressed) {
-            this.x += this.speed * delta;
+            this.x += currentSpeed * delta;
             this.lastDirection = 'right';
             this.isMoving = true;
         }
@@ -403,6 +513,10 @@ export class Player extends Container {
 
         this.currentSprite = this.isMoving ? this.moveSprite : this.stopSprite;
         this.addChild(this.currentSprite);
+        
+        // 確実に可視化
+        this.visible = true;
+        this.currentSprite.visible = true;
 
         this.applyBounds();
         this.updateSprite();
@@ -477,5 +591,25 @@ export class Player extends Container {
             width: width,
             height: height
         };
+    }
+
+    /**
+     * Playerインスタンスを破棄し、イベントリスナーをクリーンアップ
+     * @method destroy
+     * @param {Object} options - 破棄オプション
+     */
+    destroy(options) {
+        // キーボードイベントリスナーを削除
+        if (this.keydownHandler) {
+            window.removeEventListener('keydown', this.keydownHandler);
+            this.keydownHandler = null;
+        }
+        if (this.keyupHandler) {
+            window.removeEventListener('keyup', this.keyupHandler);
+            this.keyupHandler = null;
+        }
+
+        // 親クラスのdestroyを呼び出し
+        super.destroy(options);
     }
 }

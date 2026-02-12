@@ -68,30 +68,33 @@ export class Instructions extends Container {
 
         // 練習ゲーム用コンテナ
         this.practiceContainer = new Container();
-        this.addChild(this.practiceContainer);
-
-        // ゲームエリアの初期化（画面右側に配置）
+        this.practiceContainer.sortableChildren = true;
         const practiceAreaX = this.app.screen.width - areaWidth - 20;
         const practiceAreaY = (this.app.screen.height - areaHeight) / 2;
+        this.practiceContainer.x = practiceAreaX;
+        this.practiceContainer.y = practiceAreaY;
+        this.addChild(this.practiceContainer);
 
+        // ゲームエリアの初期化（practiceContainerのローカル座標で配置）
         this.gameArea = new GameArea(areaWidth, areaHeight);
-        this.gameArea.x = practiceAreaX;
-        this.gameArea.y = practiceAreaY;
+        this.gameArea.x = 0;
+        this.gameArea.y = 0;
         this.practiceContainer.addChild(this.gameArea);
 
-        // プレイヤーの初期化
+        // プレイヤーの初期化（practiceContainerのローカル座標で配置）
         this.player = new Player(
-            practiceAreaX + areaWidth / 2,
-            practiceAreaY + areaHeight - 16,
-            practiceAreaX + 16,
-            practiceAreaX + areaWidth - 16
+            areaWidth / 2,
+            areaHeight - 16,
+            16,
+            areaWidth - 16
         );
+        this.player.zIndex = 100;
         this.practiceContainer.addChild(this.player);
 
-        // スタミナゲージを作成
+        // スタミナゲージを作成（practiceContainerのローカル座標で配置）
         this.staminaGauge = new StaminaGauge(
-            practiceAreaX,
-            practiceAreaY - 40,
+            0,
+            -40,
             areaWidth,
             16
         );
@@ -146,44 +149,76 @@ export class Instructions extends Container {
     }
 
     layout() {
-        const buttonWidth = 120;
-        const buttonHeight = 50;
-        const bottomMargin = 30;
-        const leftMargin = 30;
+        try {
+            const buttonWidth = 120;
+            const buttonHeight = 50;
+            const bottomMargin = 30;
+            const leftMargin = 30;
 
-        // TOPボタン
-        const topButtonX = leftMargin;
-        const topButtonY = this.app.screen.height - buttonHeight - bottomMargin;
+            // TOPボタン
+            const topButtonX = leftMargin;
+            const topButtonY = this.app.screen.height - buttonHeight - bottomMargin;
 
-        this.topButton.clear();
-        this.topButton.roundRect(topButtonX, topButtonY, buttonWidth, buttonHeight, 10);
-        this.topButton.fill(0x666666);
-        this.topButton.stroke({ color: 0xffffff, width: 3 });
+            if (this.topButton) {
+                this.topButton.clear();
+                this.topButton.roundRect(topButtonX, topButtonY, buttonWidth, buttonHeight, 10);
+                this.topButton.fill(0x666666);
+                this.topButton.stroke({ color: 0xffffff, width: 3 });
+            }
 
-        this.topButtonText.x = topButtonX + buttonWidth / 2 - this.topButtonText.width / 2;
-        this.topButtonText.y = topButtonY + buttonHeight / 2 - this.topButtonText.height / 2;
+            if (this.topButtonText) {
+                try {
+                    this.topButtonText.x = topButtonX + buttonWidth / 2 - this.topButtonText.width / 2;
+                    this.topButtonText.y = topButtonY + buttonHeight / 2 - this.topButtonText.height / 2;
+                } catch (e) {
+                    console.warn('Top button text layout error:', e);
+                }
+            }
 
-        // STARTボタン
-        const startButtonX = leftMargin + buttonWidth + 20;
-        const startButtonY = this.app.screen.height - buttonHeight - bottomMargin;
+            // STARTボタン
+            const startButtonX = leftMargin + buttonWidth + 20;
+            const startButtonY = this.app.screen.height - buttonHeight - bottomMargin;
 
-        this.startButton.clear();
-        this.startButton.roundRect(startButtonX, startButtonY, buttonWidth, buttonHeight, 10);
-        this.startButton.fill(0xff6b6b);
-        this.startButton.stroke({ color: 0xffffff, width: 3 });
+            if (this.startButton) {
+                this.startButton.clear();
+                this.startButton.roundRect(startButtonX, startButtonY, buttonWidth, buttonHeight, 10);
+                this.startButton.fill(0xff6b6b);
+                this.startButton.stroke({ color: 0xffffff, width: 3 });
+            }
 
-        this.startButtonText.x = startButtonX + buttonWidth / 2 - this.startButtonText.width / 2;
-        this.startButtonText.y = startButtonY + buttonHeight / 2 - this.startButtonText.height / 2;
+            if (this.startButtonText) {
+                try {
+                    this.startButtonText.x = startButtonX + buttonWidth / 2 - this.startButtonText.width / 2;
+                    this.startButtonText.y = startButtonY + buttonHeight / 2 - this.startButtonText.height / 2;
+                } catch (e) {
+                    console.warn('Start button text layout error:', e);
+                }
+            }
+        } catch (e) {
+            console.error('Layout error:', e);
+        }
     }
 
     update(deltaTime) {
         if (this.player) {
-            this.player.update();
+            this.player.update(deltaTime);
+            
             // スタミナゲージを更新
             this.currentStamina = this.player.stamina;
             if (this.staminaGauge) {
                 this.staminaGauge.setStamina(this.currentStamina, this.maxStamina);
             }
         }
+    }
+
+    destroy(options) {
+        // Playerを破棄
+        if (this.player) {
+            this.player.destroy({ children: true });
+            this.player = null;
+        }
+
+        // 親クラスのdestroyを呼び出し
+        super.destroy(options);
     }
 }
