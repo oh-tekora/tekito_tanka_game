@@ -138,7 +138,7 @@ class Init {
 
     const showStory = () => {
         const story = new Story(app, () => {
-            showGame();
+            showInstructions();
         });
         setScene(story);
     };

@@ -22,12 +22,19 @@ export class Story extends Container {
         
         // ストーリーのメッセージリスト
         this.messages = [
-            'テスト',
-            'テスト2',
-            'テスト3'
+            '俺は大吾郎。\n見ての通りイケイケな恐竜だぜ',
+            'もうすぐバレンタインだな\n俺みたいなモテ恐竜はチョコをもらうだけでも\n大変だぜ',
+            'そこでヒマそうなお前に協力して欲しいんだ\n矢印キーで俺を操作して\n上から降ってくるチョコを集めてくれ！',
+            '上キーでジャンプ、\nスペースキーを押しながら矢印キーを押すと\nダッシュができるぜ',
+            'ダッシュはスタミナを消費する\nスタミナが切れると回復するまで\n移動速度が落ちてしまうから注意だ',
+            '一回練習してから\nチョコをもらいにいくとするか！'
         ];
         
         this.currentMessageIndex = 0;
+        this.isTyping = false; // タイプ中かどうか
+        this.typingIndex = 0; // 現在表示している文字数
+        this.typingSpeed = 50; // 文字表示の間隔（ミリ秒）
+        this.typingIntervalId = null; // setIntervalのID
         
         this.init();
 
@@ -141,16 +148,55 @@ export class Story extends Container {
 
     showMessage(index) {
         if (index >= 0 && index < this.messages.length && this.messageText) {
-            this.messageText.text = this.messages[index];
+            // 既存のタイプライター処理を停止
+            if (this.typingIntervalId) {
+                clearInterval(this.typingIntervalId);
+                this.typingIntervalId = null;
+            }
+            
+            this.isTyping = true;
+            this.typingIndex = 0;
+            this.messageText.text = '';
+            
+            const currentMessage = this.messages[index];
+            
+            // タイプライター効果
+            this.typingIntervalId = setInterval(() => {
+                if (this.typingIndex < currentMessage.length) {
+                    this.typingIndex++;
+                    this.messageText.text = currentMessage.substring(0, this.typingIndex);
+                } else {
+                    clearInterval(this.typingIntervalId);
+                    this.typingIntervalId = null;
+                    this.isTyping = false;
+                }
+            }, this.typingSpeed);
         }
+    }
+
+    stopTyping() {
+        if (this.typingIntervalId) {
+            clearInterval(this.typingIntervalId);
+            this.typingIntervalId = null;
+        }
+        this.isTyping = false;
     }
 
     onKeyDown(event) {
         if (event.key === 'Enter') {
+            // タイプ中ならスキップして全文表示
+            if (this.isTyping) {
+                this.stopTyping();
+                const currentMessage = this.messages[this.currentMessageIndex];
+                this.messageText.text = currentMessage;
+                return;
+            }
+            
+            // 次のメッセージへ
             this.currentMessageIndex++;
             
             if (this.currentMessageIndex >= this.messages.length) {
-                // すべてのメッセージ表示完了、ゲーム開始
+                // すべてのメッセージ表示完了
                 this.cleanup();
                 if (typeof this.onComplete === 'function') {
                     this.onComplete();
@@ -164,6 +210,7 @@ export class Story extends Container {
 
     cleanup() {
         window.removeEventListener('keydown', this.keydownHandler);
+        this.stopTyping();
     }
 
     destroy(options) {
