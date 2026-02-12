@@ -32,37 +32,24 @@ export class Opening extends Container {
     init() {
         // タイトルロゴを読み込んで表示
         try {
-            const titleTexture = Texture.from('/assets/title_rogo.png');
-            if (titleTexture) {
-                this.titleLogo = new Sprite(titleTexture);
-                this.titleLogo.anchor.set(0.5);
-                this.addChild(this.titleLogo);
-                
-                // 画像読み込み後にスケール調整
-                const setupLogo = () => {
-                    try {
-                        // 横幅を最大400pxに調整
-                        const maxWidth = 400;
-                        if (this.titleLogo && this.titleLogo.width > maxWidth) {
-                            const scale = maxWidth / this.titleLogo.width;
-                            this.titleLogo.scale.set(scale);
-                        }
-                        this.layout();
-                    } catch (e) {
-                        console.warn('Logo setup error:', e);
+            this.titleLogo = Sprite.from('/assets/title_rogo.png');
+            this.titleLogo.anchor.set(0.5);
+            this.addChild(this.titleLogo);
+            
+            // 画像読み込み完了時のコールバック
+            this.titleLogo.onLoad = () => {
+                try {
+                    // 横幅を最大400pxに調整
+                    const maxWidth = 400;
+                    if (this.titleLogo && this.titleLogo.width > maxWidth) {
+                        const scale = maxWidth / this.titleLogo.width;
+                        this.titleLogo.scale.set(scale);
                     }
-                };
-                
-                // すでに読み込まれている場合とこれから読み込む場合の両方に対応
-                if (titleTexture.baseTexture && titleTexture.baseTexture.valid) {
-                    setupLogo();
-                } else if (titleTexture.baseTexture) {
-                    titleTexture.baseTexture.on('loaded', setupLogo);
-                    titleTexture.baseTexture.on('error', (err) => {
-                        console.error('Logo loading error:', err);
-                    });
+                    this.layout();
+                } catch (e) {
+                    console.warn('Logo setup error:', e);
                 }
-            }
+            };
         } catch (e) {
             console.error('Title logo initialization failed:', e);
         }
