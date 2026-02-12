@@ -445,8 +445,8 @@ export class Game extends Container {
                 fontFamily: UI_FONT,
                 fontSize: 100,
                 fontWeight: 'bold',
-                fill: 0xffd700,
-                stroke: { color: 0xff6b6b, width: 8 }
+                fill: 0xffffff,
+                stroke: { color: 0xB47261, width: 8 }
             }
         });
 
