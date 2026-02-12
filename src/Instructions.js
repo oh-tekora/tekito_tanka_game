@@ -76,7 +76,7 @@ export class Instructions extends Container {
         this.addChild(this.practiceContainer);
 
         // ゲームエリアの初期化（practiceContainerのローカル座標で配置）
-        this.gameArea = new GameArea(areaWidth, areaHeight);
+        this.gameArea = new GameArea(areaWidth, areaHeight, 0xB47261, 5, 0xffffff, 0.2);
         this.gameArea.x = 0;
         this.gameArea.y = 0;
         this.practiceContainer.addChild(this.gameArea);

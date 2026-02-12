@@ -300,7 +300,7 @@ export class Game extends Container {
         const areaWidth = Math.min(this.app.screen.width * 0.8, maxWidth);
         const areaHeight = Math.min(this.app.screen.height * 0.8, maxHeight);
 
-        this.gameArea = new GameArea(areaWidth, areaHeight, 0xffffff, 5, 0x000000, 0.2);
+        this.gameArea = new GameArea(areaWidth, areaHeight, 0xB47261, 5, 0xffffff, 0.2);
         
         // ゲームエリアを画面中央に配置
         this.gameArea.x = (this.app.screen.width - areaWidth) / 2;
