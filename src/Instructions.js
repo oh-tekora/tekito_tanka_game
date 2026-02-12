@@ -43,36 +43,27 @@ export class Instructions extends Container {
         background.fill(0x1099bb);
         this.addChild(background);
 
-        // タイトル
-        const titleText = new Text({
-            text: '操作方法',
-            style: {
-                fontFamily: UI_FONT,
-                fontSize: 40,
-                fontWeight: 'bold',
-                fill: 0xffffff,
-                stroke: { color: 0x000000, width: 4 }
-            }
-        });
-        titleText.x = 20;
-        titleText.y = 20;
-        this.addChild(titleText);
+        // ゲームエリアのサイズ（実際のゲーム画面と同じ）
+        const maxWidth = 600;
+        const maxHeight = 800;
+        const areaWidth = Math.min(this.app.screen.width * 0.7, maxWidth);
+        const areaHeight = Math.min(this.app.screen.height * 0.8, maxHeight);
 
-        // 操作方法の説明
+        // 左側に説明文を配置
         const instructionsText = new Text({
-            text: '左右矢印キー：移動\n上矢印キー：ジャンプ\nスペースキー＋左右矢印キー：ダッシュ\n\n※ダッシュはスタミナゲージを\n消費します。使い切ると満タンに\n回復するまで移動速度が\n遅くなります！',
+            text: '操作方法\n\n左右矢印キー：移動\n\n上矢印キー：ジャンプ\n\nスペースキー＋\n左右矢印キー：ダッシュ\n\n※ダッシュはスタミナ\nゲージを消費します。\n\n使い切ると満タンに\n回復するまで移動速度が\n遅くなります！',
             style: {
                 fontFamily: UI_FONT,
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: 'bold',
                 fill: 0xffffff,
                 wordWrap: true,
-                wordWrapWidth: 350,
-                lineHeight: 30
+                wordWrapWidth: 200,
+                lineHeight: 28
             }
         });
-        instructionsText.x = 30;
-        instructionsText.y = 100;
+        instructionsText.x = 20;
+        instructionsText.y = 20;
         this.addChild(instructionsText);
 
         // 練習ゲーム用コンテナ
@@ -80,30 +71,28 @@ export class Instructions extends Container {
         this.addChild(this.practiceContainer);
 
         // ゲームエリアの初期化（画面右側に配置）
-        const practiceAreaX = this.app.screen.width / 2 + 50;
-        const practiceAreaY = 100;
-        const practiceAreaWidth = this.app.screen.width / 2 - 100;
-        const practiceAreaHeight = 400;
+        const practiceAreaX = this.app.screen.width - areaWidth - 20;
+        const practiceAreaY = (this.app.screen.height - areaHeight) / 2;
 
-        this.gameArea = new GameArea(practiceAreaX, practiceAreaY, practiceAreaWidth, practiceAreaHeight);
+        this.gameArea = new GameArea(areaWidth, areaHeight);
+        this.gameArea.x = practiceAreaX;
+        this.gameArea.y = practiceAreaY;
         this.practiceContainer.addChild(this.gameArea);
 
-        // プレイヤーの初期化（高さを1/2に）
+        // プレイヤーの初期化
         this.player = new Player(
-            this.gameArea.x + this.gameArea.getWidth() / 2,
-            this.gameArea.y + this.gameArea.getHeight() - 16,
-            this.gameArea.x + 16,
-            this.gameArea.x + this.gameArea.getWidth() - 16
+            practiceAreaX + areaWidth / 2,
+            practiceAreaY + areaHeight - 16,
+            practiceAreaX + 16,
+            practiceAreaX + areaWidth - 16
         );
-        // プレイヤーのスケールを 0.5 に設定（高さを1/2に）
-        this.player.scale.set(1, 0.5);
         this.practiceContainer.addChild(this.player);
 
         // スタミナゲージを作成
         this.staminaGauge = new StaminaGauge(
-            this.gameArea.x,
-            this.gameArea.y - 40,
-            this.gameArea.getWidth(),
+            practiceAreaX,
+            practiceAreaY - 40,
+            areaWidth,
             16
         );
         this.practiceContainer.addChild(this.staminaGauge);
@@ -160,9 +149,10 @@ export class Instructions extends Container {
         const buttonWidth = 120;
         const buttonHeight = 50;
         const bottomMargin = 30;
+        const leftMargin = 30;
 
         // TOPボタン
-        const topButtonX = 30;
+        const topButtonX = leftMargin;
         const topButtonY = this.app.screen.height - buttonHeight - bottomMargin;
 
         this.topButton.clear();
@@ -174,7 +164,7 @@ export class Instructions extends Container {
         this.topButtonText.y = topButtonY + buttonHeight / 2 - this.topButtonText.height / 2;
 
         // STARTボタン
-        const startButtonX = 30 + buttonWidth + 20;
+        const startButtonX = leftMargin + buttonWidth + 20;
         const startButtonY = this.app.screen.height - buttonHeight - bottomMargin;
 
         this.startButton.clear();
