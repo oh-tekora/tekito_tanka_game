@@ -2,7 +2,7 @@
  * @fileoverview Opening screen
  */
 
-import { Container, Graphics, Text } from 'pixi.js';
+import { Container, Graphics, Text, Sprite, Texture } from 'pixi.js';
 
 const UI_FONT = 'DotGothic16Std-M, Arial, sans-serif';
 
@@ -16,7 +16,7 @@ export class Opening extends Container {
 
         this.eventMode = 'static';
 
-        this.titleText = null;
+        this.titleLogo = null;
         this.startButton = null;
         this.startButtonText = null;
         this.instructionsButton = null;
@@ -30,17 +30,11 @@ export class Opening extends Container {
     }
 
     init() {
-        this.titleText = new Text({
-            text: 'Valentine Catch',
-            style: {
-                fontFamily: UI_FONT,
-                fontSize: 48,
-                fontWeight: 'bold',
-                fill: 0xffffff,
-                stroke: { color: 0x000000, width: 6 }
-            }
-        });
-        this.addChild(this.titleText);
+        // タイトルロゴを読み込んで表示
+        const titleTexture = Texture.from('/assets/title_rogo.png');
+        this.titleLogo = new Sprite(titleTexture);
+        this.titleLogo.anchor.set(0.5);
+        this.addChild(this.titleLogo);
 
         // STARTボタン
         this.startButton = new Graphics();
@@ -94,10 +88,10 @@ export class Opening extends Container {
             const centerX = this.app.screen.width / 2;
             const centerY = this.app.screen.height / 2;
 
-            if (this.titleText) {
+            if (this.titleLogo) {
                 try {
-                    this.titleText.x = centerX - this.titleText.width / 2;
-                    this.titleText.y = centerY - 140;
+                    this.titleLogo.x = centerX;
+                    this.titleLogo.y = centerY - 140;
                 } catch (e) {
                     console.warn('Title text layout error:', e);
                 }
