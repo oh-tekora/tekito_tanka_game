@@ -9,6 +9,7 @@ import { Character } from './character.js';
 import { GameArea } from './GameArea.js';
 import { Chocolate } from './Chocolate.js';
 import { Player } from './Player.js';
+import { FloatingText } from './FloatingText.js';
 
 const UI_FONT = 'DotGothic16Std-M, Arial, sans-serif';
 
@@ -155,6 +156,13 @@ export class Game extends Container {
          * @private
          */
         this.timeText = null;
+
+        /**
+         * フローティングテキスト（ポイント表示）の配列
+         * @type {FloatingText[]}
+         * @private
+         */
+        this.floatingTexts = [];
 
         /**
          * ゲーム進行中かどうか
@@ -492,6 +500,9 @@ export class Game extends Container {
         // チョコとプレイヤーの衝突判定
         this.checkChocolateCollisions();
 
+        // フローティングテキストを更新
+        this.updateFloatingTexts(delta);
+
         // 各キャラクターを更新
         for (const character of this.characters) {
             // ドラッグ中でないキャラクターのみ更新
@@ -591,8 +602,12 @@ export class Game extends Container {
             if (this.checkRectCollision(playerBounds, chocoBounds)) {
                 // チョコをキャッチ
                 chocolate.catch();
+                // ポイント数を取得
+                const points = chocolate.getPoints();
                 // スコアを増やす
-                this.addScore(chocolate.getPoints());
+                this.addScore(points);
+                // フローティングテキストを表示
+                this.showFloatingText(chocolate.x, chocolate.y, `+${points}pt`);
             }
         }
     }
@@ -625,6 +640,45 @@ export class Game extends Container {
         }
         if (this.player && typeof this.player.setScore === 'function') {
             this.player.setScore(this.score);
+        }
+    }
+
+    /**
+     * フローティングテキストを表示
+     * @method showFloatingText
+     * @param {number} x - X座標
+     * @param {number} y - Y座標
+     * @param {string} text - 表示テキスト
+     * @private
+     */
+    showFloatingText(x, y, text) {
+        const floatingText = new FloatingText(x, y, text, {
+            duration: 800,
+            fontSize: 24,
+            color: '#FFFFFF',
+            floatDistance: 60
+        });
+        this.addChild(floatingText);
+        this.floatingTexts.push(floatingText);
+    }
+
+    /**
+     * フローティングテキストを更新
+     * @method updateFloatingTexts
+     * @param {number} delta - フレームデルタ
+     * @private
+     */
+    updateFloatingTexts(delta) {
+        // フローティングテキストを更新
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+            const floatingText = this.floatingTexts[i];
+            const isActive = floatingText.update(delta);
+
+            if (!isActive) {
+                // アニメーション終了時に削除
+                this.removeChild(floatingText);
+                this.floatingTexts.splice(i, 1);
+            }
         }
     }
 

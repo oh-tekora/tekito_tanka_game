@@ -115,6 +115,90 @@ export class Player extends Container {
          */
         this.isMoving = false;
 
+        /**
+         * Y方向の速度
+         * @type {number}
+         * @private
+         */
+        this.velocityY = 0;
+
+        /**
+         * 重力
+         * @type {number}
+         * @private
+         */
+        this.gravity = 0.3;
+
+        /**
+         * ジャンプ力
+         * @type {number}
+         * @private
+         */
+        this.jumpPower = 5;
+
+        /**
+         * 接地中かどうか
+         * @type {boolean}
+         * @private
+         */
+        this.isGrounded = true;
+
+        /**
+         * ジャンプをしているか
+         * @type {boolean}
+         * @private
+         */
+        this.jumpPressed = false;
+
+        /**
+         * 初期Y座標
+         * @type {number}
+         * @private
+         */
+        this.baseY = y;
+
+        /**
+         * Y方向の速度
+         * @type {number}
+         * @private
+         */
+        this.velocityY = 0;
+
+        /**
+         * 重力
+         * @type {number}
+         * @private
+         */
+        this.gravity = 0.3;
+
+        /**
+         * ジャンプ力
+         * @type {number}
+         * @private
+         */
+        this.jumpPower = 7;
+
+        /**
+         * 接地中かどうか
+         * @type {boolean}
+         * @private
+         */
+        this.isGrounded = true;
+
+        /**
+         * ジャンプをしているか
+         * @type {boolean}
+         * @private
+         */
+        this.jumpPressed = false;
+
+        /**
+         * 初期Y座標
+         * @type {number}
+         * @private
+         */
+        this.baseY = y;
+
         // 位置を設定
         this.x = x;
         this.y = y;
@@ -152,6 +236,11 @@ export class Player extends Container {
                 this.leftPressed = true;
             } else if (event.key === 'ArrowRight') {
                 this.rightPressed = true;
+            } else if (event.key === ' ' && this.isGrounded) {
+                // スペースキーでジャンプ
+                this.velocityY = -this.jumpPower;
+                this.isGrounded = false;
+                this.jumpPressed = true;
             }
         });
 
@@ -160,6 +249,8 @@ export class Player extends Container {
                 this.leftPressed = false;
             } else if (event.key === 'ArrowRight') {
                 this.rightPressed = false;
+            } else if (event.key === ' ') {
+                this.jumpPressed = false;
             }
         });
     }
@@ -174,6 +265,19 @@ export class Player extends Container {
             return;
         }
         this.isMoving = false;
+
+        // Y方向の挙動処理（重力と接地判定）
+        this.velocityY += this.gravity;
+        this.y += this.velocityY;
+
+        // 接地判定（初期Y座標以上になったら接地中にする）
+        if (this.y >= this.baseY) {
+            this.y = this.baseY;
+            this.velocityY = 0;
+            this.isGrounded = true;
+        } else {
+            this.isGrounded = false;
+        }
 
         // 左右の移動処理
         if (this.leftPressed) {
