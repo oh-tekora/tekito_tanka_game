@@ -8,6 +8,7 @@ import { Application } from 'pixi.js';
 import { Game } from './game.js';
 import { Opening } from './Opening.js';
 import { Ending } from './Ending.js';
+import { Instructions } from './Instructions.js';
 
 /**
  * PixiJSアプリケーションの初期化クラス
@@ -110,8 +111,19 @@ class Init {
     const showOpening = () => {
         const opening = new Opening(app, () => {
             showGame();
+        }, () => {
+            showInstructions();
         });
         setScene(opening);
+    };
+
+    const showInstructions = () => {
+        const instructions = new Instructions(app, () => {
+            showOpening();
+        }, () => {
+            showGame();
+        });
+        setScene(instructions);
     };
 
     const showGame = () => {
