@@ -42,7 +42,7 @@ class Init {
         await this.app.init({
             width: window.innerWidth,
             height: window.innerHeight,
-            backgroundColor: 0x1099bb,
+            backgroundColor: 0xFED4E4,
             resolution: window.devicePixelRatio || 1,
             autoDensity: true,
             resizeTo: window
@@ -137,6 +137,8 @@ class Init {
     const showEnding = (result) => {
         const ending = new Ending(app, result.score, () => {
             showGame();
+        }, () => {
+            showOpening();
         });
         setScene(ending);
     };

@@ -40,7 +40,7 @@ export class Instructions extends Container {
         // 背景
         const background = new Graphics();
         background.rect(0, 0, this.app.screen.width, this.app.screen.height);
-        background.fill(0x1099bb);
+        background.fill(0xFED4E4);
         this.addChild(background);
 
         // ゲームエリアのサイズ（実際のゲーム画面と同じ）
@@ -51,7 +51,7 @@ export class Instructions extends Container {
 
         // 左側に説明文を配置
         const instructionsText = new Text({
-            text: '操作方法\n\n左右矢印キー：移動\n\n上矢印キー：ジャンプ\n\nスペースキー＋\n左右矢印キー：ダッシュ\n\n※ダッシュはスタミナ\nゲージを消費します。\n\n使い切ると満タンに\n回復するまで移動速度が\n遅くなります！',
+            text: '操作方法\n\n左右矢印キー：移動\n\n上矢印キー：ジャンプ\n\nスペースキー＋\n左右矢印キー：ダッシュ\n\n※ダッシュはスタミナ\nゲージを消費します。\n\nスタミナを使い切ると、\n全回復するまで移動速度が\n遅くなります',
             style: {
                 fontFamily: UI_FONT,
                 fontSize: 16,

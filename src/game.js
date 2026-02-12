@@ -234,7 +234,7 @@ export class Game extends Container {
     drawBackground() {
         this.background.clear();
         this.background.rect(0, 0, this.app.screen.width, this.app.screen.height);
-        this.background.fill(0x1099bb);
+        this.background.fill(0xFED4E4);
     }
 
     /**
@@ -371,8 +371,7 @@ export class Game extends Container {
 
         // 初期スタミナを反映
         if (this.player) {
-            this.previousStamina = this.player.getStamina();
-            this.staminaGauge.setStamina(this.previousStamina, this.player.getMaxStamina());
+            this.staminaGauge.setStamina(this.player.stamina, this.player.maxStamina);
         }
     }
 
@@ -760,8 +759,8 @@ export class Game extends Container {
     updateStaminaGauge() {
         if (!this.staminaGauge || !this.player) return;
 
-        const currentStamina = this.player.getStamina();
-        const maxStamina = this.player.getMaxStamina();
+        const currentStamina = this.player.stamina;
+        const maxStamina = this.player.maxStamina;
 
         // ゲージを更新
         this.staminaGauge.setStamina(currentStamina, maxStamina);
