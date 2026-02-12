@@ -163,14 +163,14 @@ export class Player extends Container {
          * @type {number}
          * @private
          */
-        this.stamina = 5.0;
+        this.stamina = 2.0;
 
         /**
          * 利用可能なスタミナの最大値（秒）- ダッシュ最大持続時間
          * @type {number}
          * @private
          */
-        this.maxStamina = 5.0;
+        this.maxStamina = 2.0;
 
         /**
          * スタミナが完全に枯渇しているかどうか
@@ -198,7 +198,7 @@ export class Player extends Container {
          * @type {number}
          * @private
          */
-        this.staminaRecoverRate = 1.0; // 5秒 / 5秒 = 1.0秒/秒
+        this.staminaRecoverRate = 1.0; // 2秒 / 2秒 = 1.0秒/秒
 
         /**
          * スペースキーが押されているかどうか（ダッシュ用）
