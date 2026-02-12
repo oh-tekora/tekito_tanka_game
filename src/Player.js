@@ -314,19 +314,19 @@ export class Player extends Container {
     getSpritePaths(tier) {
         if (tier === 2) {
             return {
-                move: '/assets/大吾郎_やまもり.png',
-                stop: '/assets/大吾郎_停止_やまもり.png'
+                move: '/assets/daigorou_3rd.png',
+                stop: '/assets/daigorou_stop_3rd.png'
             };
         }
         if (tier === 1) {
             return {
-                move: '/assets/大吾郎_ふつうもり.png',
-                stop: '/assets/大吾郎_停止_ふつうもり.png'
+                move: '/assets/daigorou_2nd.png',
+                stop: '/assets/daigorou_stop_2nd.png'
             };
         }
         return {
-            move: '/assets/大吾郎_からっぽ.png',
-            stop: '/assets/大吾郎_停止_からっぽ.png'
+            move: '/assets/daigorou_1st.png',
+            stop: '/assets/daigorou_stop_1st.png'
         };
     }
 
