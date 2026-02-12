@@ -207,6 +207,27 @@ export class Game extends Container {
          */
         this.countdownText = null;
 
+        /**
+         * FINISH表示中かどうか
+         * @type {boolean}
+         * @private
+         */
+        this.isFinishing = false;
+
+        /**
+         * FINISH表示のタイマー
+         * @type {number}
+         * @private
+         */
+        this.finishTimer = 0;
+
+        /**
+         * FINISH表示テキスト
+         * @type {Text|null}
+         * @private
+         */
+        this.finishText = null;
+
         this.init();
     }
 
@@ -229,6 +250,7 @@ export class Game extends Container {
         this.setupTimeText();
         this.setupStaminaGauge();
         this.setupCountdownText();
+        this.setupFinishText();
         this.setupCharacter();
         this.setupPointerEvents();
 
@@ -407,6 +429,35 @@ export class Game extends Container {
         this.countdownText.zIndex = 10000;
 
         this.addChild(this.countdownText);
+    }
+
+    /**
+     * FINISH表示テキストのセットアップ
+     * @method setupFinishText
+     * @private
+     */
+    setupFinishText() {
+        if (!this.gameArea) return;
+
+        this.finishText = new Text({
+            text: 'FINISH！',
+            style: {
+                fontFamily: UI_FONT,
+                fontSize: 100,
+                fontWeight: 'bold',
+                fill: 0xffd700,
+                stroke: { color: 0xff6b6b, width: 8 }
+            }
+        });
+
+        // ゲームエリアの中央に配置
+        this.finishText.anchor.set(0.5);
+        this.finishText.x = this.gameArea.x + this.gameArea.getWidth() / 2;
+        this.finishText.y = this.gameArea.y + this.gameArea.getHeight() / 2;
+        this.finishText.visible = false;
+        this.finishText.zIndex = 10000;
+
+        this.addChild(this.finishText);
     }
 
     /**
@@ -592,8 +643,12 @@ export class Game extends Container {
     endGame() {
         if (!this.isRunning) return;
         this.isRunning = false;
-        if (typeof this.onGameEnd === 'function') {
-            this.onGameEnd({ score: this.score });
+        
+        // FINISH表示を開始
+        this.isFinishing = true;
+        this.finishTimer = 0;
+        if (this.finishText) {
+            this.finishText.visible = true;
         }
     }
 
@@ -603,6 +658,23 @@ export class Game extends Container {
      * @param {number} delta - 前フレームからの経過時間（60FPS基準で1.0が標準）
      */
     update(delta) {
+        // FINISH表示処理
+        if (this.isFinishing) {
+            this.finishTimer += delta / 60;
+            
+            if (this.finishTimer >= 2.0) {
+                // 2秒経過したらリザルト画面へ
+                this.isFinishing = false;
+                if (this.finishText) {
+                    this.finishText.visible = false;
+                }
+                if (typeof this.onGameEnd === 'function') {
+                    this.onGameEnd({ score: this.score });
+                }
+            }
+            return;
+        }
+        
         // カウントダウン処理
         if (this.isCountingDown) {
             this.countdownTimer += delta / 60;
