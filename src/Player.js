@@ -173,6 +173,13 @@ export class Player extends Container {
         this.maxStamina = 3.0;
 
         /**
+         * スタミナが完全に枯渇しているかどうか
+         * @type {boolean}
+         * @private
+         */
+        this.isStaminaDepleted = false;
+
+        /**
          * ダッシュ倍率
          * @type {number}
          * @private
@@ -180,11 +187,11 @@ export class Player extends Container {
         this.dashMultiplier = 1.25;
 
         /**
-         * スタミナ枯渇時の速度倍率
+         * 疲労時の速度倍率
          * @type {number}
          * @private
          */
-        this.depletedSpeedMultiplier = 0.5;
+        this.fatigueMultiplier = 0.5;
 
         /**
          * スタミナ回復速度（秒/秒）
@@ -291,14 +298,15 @@ export class Player extends Container {
         // 移動速度を計算（スタミナ状態に応じて倍率を調整）
         let currentSpeedMultiplier = 1.0;
         
-        // スタミナが枯渇している場合は通常速度を0.5倍に
-        if (this.stamina <= 0) {
-            currentSpeedMultiplier = this.depletedSpeedMultiplier; // 0.5倍
+        // 疲労状態の場合は速度を0.5倍に
+        if (this.isStaminaDepleted) {
+            currentSpeedMultiplier = this.fatigueMultiplier; // 0.5倍
         }
         // ダッシュ状態の場合（スペース+移動 かつ スタミナがある）
         else if (this.spacePressed && this.isMoving && this.stamina > 0) {
             currentSpeedMultiplier = this.dashMultiplier; // 1.25倍
         }
+        // それ以外は通常速度（1.0倍）
 
         // 左右の移動処理
         if (this.leftPressed) {
@@ -326,15 +334,27 @@ export class Player extends Container {
      * @private
      */
     updateStamina(deltaSeconds) {
-        // ダッシュ中（スペース + 移動 + スタミナあり）
-        if (this.spacePressed && this.isMoving && this.stamina > 0) {
+        // ダッシュ中（スペース + 移動 + スタミナあり + 疲労していない）
+        if (this.spacePressed && this.isMoving && this.stamina > 0 && !this.isStaminaDepleted) {
             // スタミナを消費
             this.stamina = Math.max(0, this.stamina - deltaSeconds);
+
+            // スタミナが完全に枯渇した場合
+            if (this.stamina <= 0) {
+                this.isStaminaDepleted = true;
+                this.stamina = 0; // 念のため0に確定
+            }
         }
-        // アイドル状態（ダッシュしていないか、移動していない）かつスタミナが最大でない
+        // 回復状態（疲労中または通常時）
         else if (this.stamina < this.maxStamina) {
             // スタミナを回復（maxStaminaまで）
             this.stamina = Math.min(this.maxStamina, this.stamina + this.staminaRecoverRate * deltaSeconds);
+
+            // スタミナが満タンに達した場合、疲労状態を解除
+            if (this.stamina >= this.maxStamina) {
+                this.stamina = this.maxStamina;
+                this.isStaminaDepleted = false;
+            }
         }
     }
 
@@ -535,5 +555,14 @@ export class Player extends Container {
      */
     getMaxStamina() {
         return this.maxStamina;
+    }
+
+    /**
+     * 疲労状態かどうかを取得
+     * @method isFatigued
+     * @returns {boolean} 疲労状態ならtrue
+     */
+    isFatigued() {
+        return this.isStaminaDepleted;
     }
 }
