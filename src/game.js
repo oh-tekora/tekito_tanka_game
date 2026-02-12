@@ -245,6 +245,7 @@ export class Game extends Container {
 
         this.setupBackground();
         this.setupGameArea();
+        this.setupLoveBackground();
         this.setupPlayer();
         this.setupStaminaGauge();
         this.setupScoreText();
@@ -309,6 +310,39 @@ export class Game extends Container {
         this.gameArea.y = (this.app.screen.height - areaHeight) / 2;
         
         this.addChild(this.gameArea);
+    }
+
+    /**
+     * LOVE背景のセットアップ
+     * @method setupLoveBackground
+     * @private
+     */
+    async setupLoveBackground() {
+        if (!this.gameArea) return;
+
+        try {
+            const loveTexture = await Assets.load('/assets/LOVE.png');
+            const loveSprite = new Sprite(loveTexture);
+            
+            // ゲームエリアの中央に配置
+            loveSprite.anchor.set(0.5);
+            loveSprite.x = this.gameArea.getWidth() / 2;
+            loveSprite.y = this.gameArea.getHeight() / 2;
+            
+            // 透明度50%
+            loveSprite.alpha = 0.5;
+            
+            // サイズをゲームエリアに合わせて調整
+            const maxSize = Math.min(this.gameArea.getWidth(), this.gameArea.getHeight()) * 0.8;
+            const scale = maxSize / Math.max(loveSprite.width, loveSprite.height);
+            loveSprite.scale.set(scale);
+            
+            // ゲームエリアに追加（背面）
+            loveSprite.zIndex = -1;
+            this.gameArea.addChild(loveSprite);
+        } catch (e) {
+            console.error('Failed to load LOVE.png:', e);
+        }
     }
 
     /**

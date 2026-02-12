@@ -84,6 +84,7 @@ export class GameArea extends Container {
      * @private
      */
     init() {
+        this.sortableChildren = true;
         this.graphics = new Graphics();
         this.draw();
         this.addChild(this.graphics);
