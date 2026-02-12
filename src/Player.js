@@ -184,7 +184,7 @@ export class Player extends Container {
          * @type {number}
          * @private
          */
-        this.dashMultiplier = 1.25;
+        this.dashMultiplier = 1.5;
 
         /**
          * 疲労時の速度倍率

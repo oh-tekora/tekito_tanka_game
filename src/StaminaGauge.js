@@ -29,14 +29,14 @@ export class StaminaGauge extends Container {
          * @type {number}
          * @private
          */
-        this.width = width;
+        this._width = width;
 
         /**
          * ゲージの高さ
          * @type {number}
          * @private
          */
-        this.height = height;
+        this._height = height;
 
         /**
          * 背景グラフィックス
@@ -107,7 +107,7 @@ export class StaminaGauge extends Container {
     init() {
         // 背景
         this.background = new Graphics();
-        this.background.rect(0, 0, this.width, this.height);
+        this.background.rect(0, 0, this._width, this._height);
         this.background.fill(0x333333);
         this.addChild(this.background);
 
@@ -117,11 +117,15 @@ export class StaminaGauge extends Container {
 
         // 枠線
         this.border = new Graphics();
-        this.border.rect(0, 0, this.width, this.height);
+        this.border.rect(0, 0, this._width, this._height);
         this.border.stroke({ color: 0xffffff, width: 2 });
         this.addChild(this.border);
 
         // ラベル
+        // コンテナの幅・高さを明示的に設定
+        this.width = this._width;
+        this.height = this._height;
+
         this.label = new Text({
             text: 'Stamina',
             style: {
@@ -170,8 +174,8 @@ export class StaminaGauge extends Container {
         }
 
         // ゲージを描画
-        const gaugeWidth = this.width * this.currentStamina;
-        this.gauge.rect(0, 0, gaugeWidth, this.height);
+        const gaugeWidth = this._width * this.currentStamina;
+        this.gauge.rect(0, 0, gaugeWidth, this._height);
         this.gauge.fill(gaugeColor);
     }
 
