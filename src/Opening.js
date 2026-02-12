@@ -35,6 +35,24 @@ export class Opening extends Container {
         this.titleLogo = new Sprite(titleTexture);
         this.titleLogo.anchor.set(0.5);
         this.addChild(this.titleLogo);
+        
+        // 画像読み込み後にスケール調整
+        const setupLogo = () => {
+            // 横幅を最大400pxに調整
+            const maxWidth = 400;
+            if (this.titleLogo.width > maxWidth) {
+                const scale = maxWidth / this.titleLogo.width;
+                this.titleLogo.scale.set(scale);
+            }
+            this.layout();
+        };
+        
+        // すでに読み込まれている場合とこれから読み込む場合の両方に対応
+        if (titleTexture.baseTexture.valid) {
+            setupLogo();
+        } else {
+            titleTexture.baseTexture.on('loaded', setupLogo);
+        }
 
         // STARTボタン
         this.startButton = new Graphics();
