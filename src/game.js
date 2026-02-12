@@ -179,6 +179,55 @@ export class Game extends Container {
          */
         this.isRunning = false;
 
+        /**
+         * カウントダウン中かどうか
+         * @type {boolean}
+         * @private
+         */
+        this.isCountingDown = false;
+
+        /**
+         * カウントダウンの値（3, 2, 1）
+         * @type {number}
+         * @private
+         */
+        this.countdownValue = 3;
+
+        /**
+         * カウントダウンのタイマー
+         * @type {number}
+         * @private
+         */
+        this.countdownTimer = 0;
+
+        /**
+         * カウントダウン表示テキスト
+         * @type {Text|null}
+         * @private
+         */
+        this.countdownText = null;
+
+        /**
+         * FINISH表示中かどうか
+         * @type {boolean}
+         * @private
+         */
+        this.isFinishing = false;
+
+        /**
+         * FINISH表示のタイマー
+         * @type {number}
+         * @private
+         */
+        this.finishTimer = 0;
+
+        /**
+         * FINISH表示テキスト
+         * @type {Text|null}
+         * @private
+         */
+        this.finishText = null;
+
         this.init();
     }
 
@@ -200,6 +249,8 @@ export class Game extends Container {
         this.setupScoreText();
         this.setupTimeText();
         this.setupStaminaGauge();
+        this.setupCountdownText();
+        this.setupFinishText();
         this.setupCharacter();
         this.setupPointerEvents();
 
@@ -249,7 +300,7 @@ export class Game extends Container {
         const areaWidth = Math.min(this.app.screen.width * 0.8, maxWidth);
         const areaHeight = Math.min(this.app.screen.height * 0.8, maxHeight);
 
-        this.gameArea = new GameArea(areaWidth, areaHeight, 0xffffff, 5, 0x000000, 0.2);
+        this.gameArea = new GameArea(areaWidth, areaHeight, 0xB47261, 5, 0xffffff, 0.2);
         
         // ゲームエリアを画面中央に配置
         this.gameArea.x = (this.app.screen.width - areaWidth) / 2;
@@ -349,6 +400,64 @@ export class Game extends Container {
         this.timeText.y = this.gameArea.y + 50;
 
         this.addChild(this.timeText);
+    }
+
+    /**
+     * カウントダウンテキストのセットアップ
+     * @method setupCountdownText
+     * @private
+     */
+    setupCountdownText() {
+        if (!this.gameArea) return;
+
+        this.countdownText = new Text({
+            text: '3',
+            style: {
+                fontFamily: UI_FONT,
+                fontSize: 120,
+                fontWeight: 'bold',
+                fill: 0xff6b6b,
+                stroke: { color: 0xffffff, width: 8 }
+            }
+        });
+
+        // ゲームエリアの中央に配置
+        this.countdownText.anchor.set(0.5);
+        this.countdownText.x = this.gameArea.x + this.gameArea.getWidth() / 2;
+        this.countdownText.y = this.gameArea.y + this.gameArea.getHeight() / 2;
+        this.countdownText.visible = false;
+        this.countdownText.zIndex = 10000;
+
+        this.addChild(this.countdownText);
+    }
+
+    /**
+     * FINISH表示テキストのセットアップ
+     * @method setupFinishText
+     * @private
+     */
+    setupFinishText() {
+        if (!this.gameArea) return;
+
+        this.finishText = new Text({
+            text: 'FINISH！',
+            style: {
+                fontFamily: UI_FONT,
+                fontSize: 100,
+                fontWeight: 'bold',
+                fill: 0xffffff,
+                stroke: { color: 0xB47261, width: 8 }
+            }
+        });
+
+        // ゲームエリアの中央に配置
+        this.finishText.anchor.set(0.5);
+        this.finishText.x = this.gameArea.x + this.gameArea.getWidth() / 2;
+        this.finishText.y = this.gameArea.y + this.gameArea.getHeight() / 2;
+        this.finishText.visible = false;
+        this.finishText.zIndex = 10000;
+
+        this.addChild(this.finishText);
     }
 
     /**
@@ -498,11 +607,16 @@ export class Game extends Container {
     }
 
     /**
-     * ゲーム開始
+     * ゲーム開始（カウントダウンから開始）
      * @method start
      */
     start() {
-        this.isRunning = true;
+        // カウントダウンを開始
+        this.isCountingDown = true;
+        this.isRunning = false;
+        this.countdownValue = 3;
+        this.countdownTimer = 0;
+        
         this.timeLeft = this.timeLimit;
         this.score = 0;
         this.chocolateSpawnTimer = 0;
@@ -515,6 +629,10 @@ export class Game extends Container {
         if (this.timeText) {
             this.timeText.text = `Time: ${this.timeLeft.toFixed(1)}`;
         }
+        if (this.countdownText) {
+            this.countdownText.text = '3';
+            this.countdownText.visible = true;
+        }
     }
 
     /**
@@ -525,8 +643,12 @@ export class Game extends Container {
     endGame() {
         if (!this.isRunning) return;
         this.isRunning = false;
-        if (typeof this.onGameEnd === 'function') {
-            this.onGameEnd({ score: this.score });
+        
+        // FINISH表示を開始
+        this.isFinishing = true;
+        this.finishTimer = 0;
+        if (this.finishText) {
+            this.finishText.visible = true;
         }
     }
 
@@ -536,6 +658,48 @@ export class Game extends Container {
      * @param {number} delta - 前フレームからの経過時間（60FPS基準で1.0が標準）
      */
     update(delta) {
+        // FINISH表示処理
+        if (this.isFinishing) {
+            this.finishTimer += delta / 60;
+            
+            if (this.finishTimer >= 2.0) {
+                // 2秒経過したらリザルト画面へ
+                this.isFinishing = false;
+                if (this.finishText) {
+                    this.finishText.visible = false;
+                }
+                if (typeof this.onGameEnd === 'function') {
+                    this.onGameEnd({ score: this.score });
+                }
+            }
+            return;
+        }
+        
+        // カウントダウン処理
+        if (this.isCountingDown) {
+            this.countdownTimer += delta / 60;
+            
+            if (this.countdownTimer >= 1.0) {
+                this.countdownTimer = 0;
+                this.countdownValue--;
+                
+                if (this.countdownValue > 0) {
+                    // カウントダウン継続
+                    if (this.countdownText) {
+                        this.countdownText.text = String(this.countdownValue);
+                    }
+                } else {
+                    // カウントダウン終了、ゲーム開始
+                    this.isCountingDown = false;
+                    this.isRunning = true;
+                    if (this.countdownText) {
+                        this.countdownText.visible = false;
+                    }
+                }
+            }
+            return;
+        }
+        
         if (!this.isRunning) {
             return;
         }
