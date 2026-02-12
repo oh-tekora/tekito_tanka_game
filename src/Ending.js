@@ -18,6 +18,8 @@ export class Ending extends Container {
 
         this.titleText = null;
         this.scoreText = null;
+        this.rankText = null;
+        this.rankDescText = null;
         this.retryButton = null;
         this.retryButtonText = null;
         this.topButton = null;
@@ -54,6 +56,33 @@ export class Ending extends Container {
             }
         });
         this.addChild(this.scoreText);
+
+        const resultMessage = this.getResultMessage(score);
+        this.rankText = new Text({
+            text: resultMessage.rank,
+            style: {
+                fontFamily: UI_FONT,
+                fontSize: 42,
+                fontWeight: 'bold',
+                fill: 0xffffff,
+                stroke: { color: 0x000000, width: 5 }
+            }
+        });
+        this.addChild(this.rankText);
+
+        this.rankDescText = new Text({
+            text: resultMessage.description,
+            style: {
+                fontFamily: UI_FONT,
+                fontSize: 24,
+                fill: 0xffffff,
+                stroke: { color: 0x000000, width: 3 },
+                wordWrap: true,
+                wordWrapWidth: 520,
+                lineHeight: 30
+            }
+        });
+        this.addChild(this.rankDescText);
 
         // RETRYボタン
         this.retryButton = new Graphics();
@@ -102,6 +131,25 @@ export class Ending extends Container {
         this.layout();
     }
 
+    getResultMessage(score) {
+        if (score < 40) {
+            return {
+                rank: '絶滅危惧種級',
+                description: 'そんなんじゃ氷河期を乗り切れないぜ。もっと牙を磨こう。'
+            };
+        }
+        if (score < 80) {
+            return {
+                rank: '化石級',
+                description: 'まあまあかな。将来恐竜博物館あたりでいい見せ物にはなれるんじゃないか？'
+            };
+        }
+        return {
+            rank: 'ダイナソー級',
+            description: '見たか？俺くらいになると、ジュラ紀から令和までずっとモテモテだぜ。'
+        };
+    }
+
     layout() {
         try {
             const centerX = this.app.screen.width / 2;
@@ -125,12 +173,28 @@ export class Ending extends Container {
                 }
             }
 
+            if (this.rankText && this.rankDescText) {
+                try {
+                    const rankY = centerY - 20;
+                    this.rankText.x = centerX - this.rankText.width / 2;
+                    this.rankText.y = rankY;
+
+                    const descY = rankY + this.rankText.height + 10;
+                    this.rankDescText.x = centerX - this.rankDescText.width / 2;
+                    this.rankDescText.y = descY;
+                } catch (e) {
+                    console.warn('Rank text layout error:', e);
+                }
+            }
+
             const buttonWidth = 200;
             const buttonHeight = 64;
             const buttonSpacing = 20;
             const totalWidth = buttonWidth * 2 + buttonSpacing;
             const startX = centerX - totalWidth / 2;
-            const buttonY = centerY + 10;
+            const buttonY = this.rankDescText
+                ? this.rankDescText.y + this.rankDescText.height + 30
+                : centerY + 10;
 
             // TOPボタン（左側）
             const topButtonX = startX;
