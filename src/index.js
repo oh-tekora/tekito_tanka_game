@@ -6,6 +6,10 @@
 
 import { Application } from 'pixi.js';
 import { Game } from './game.js';
+import { Opening } from './Opening.js';
+import { Ending } from './Ending.js';
+import { Instructions } from './Instructions.js';
+import { Story } from './Story.js';
 
 /**
  * PixiJSアプリケーションの初期化クラス
@@ -39,7 +43,7 @@ class Init {
         await this.app.init({
             width: window.innerWidth,
             height: window.innerHeight,
-            backgroundColor: 0x1099bb,
+            backgroundColor: 0xFED4E4,
             resolution: window.devicePixelRatio || 1,
             autoDensity: true,
             resizeTo: window
@@ -80,11 +84,88 @@ class Init {
 (async () => {
     const init = new Init();
     const app = await init.setup();
-    const game = new Game(app);
+    let currentScene = null;
+    let hasPlayedBefore = false; // 初回プレイかどうかのフラグ
 
-    app.stage.addChild(game);
+    const loadFonts = async () => {
+        if (!document.fonts || !document.fonts.load) {
+            return;
+        }
+        try {
+            await document.fonts.load('16px "DotGothic16Std-M"');
+            await document.fonts.ready;
+        } catch (error) {
+            console.warn('Font loading failed:', error);
+        }
+    };
+
+    const setScene = (scene) => {
+        if (currentScene) {
+            app.stage.removeChild(currentScene);
+            if (typeof currentScene.destroy === 'function') {
+                currentScene.destroy({ children: true });
+            }
+        }
+        currentScene = scene;
+        app.stage.addChild(currentScene);
+    };
+
+    const showOpening = () => {
+        const opening = new Opening(app, () => {
+            // STARTボタンが押されたとき
+            if (!hasPlayedBefore) {
+                // 初回はストーリーを表示
+                showStory();
+                hasPlayedBefore = true;
+            } else {
+                // 2回目以降は直接ゲームへ
+                showGame();
+            }
+        }, () => {
+            showInstructions();
+        });
+        setScene(opening);
+    };
+
+    const showInstructions = () => {
+        const instructions = new Instructions(app, () => {
+            showOpening();
+        }, () => {
+            showGame();
+        });
+        setScene(instructions);
+    };
+
+    const showStory = () => {
+        const story = new Story(app, () => {
+            showInstructions();
+        });
+        setScene(story);
+    };
+
+    const showGame = () => {
+        const game = new Game(app, (result) => {
+            showEnding(result);
+        });
+        game.start();
+        setScene(game);
+    };
+
+    const showEnding = (result) => {
+        const ending = new Ending(app, result.score, () => {
+            showGame();
+        }, () => {
+            showOpening();
+        });
+        setScene(ending);
+    };
+
+    await loadFonts();
+    showOpening();
 
     app.ticker.add((ticker) => {
-        game.update(ticker.deltaTime);
+        if (currentScene && typeof currentScene.update === 'function') {
+            currentScene.update(ticker.deltaTime);
+        }
     });
 })();
